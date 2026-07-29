@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=./node_modules/lefthook/schema.json
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: true
+  skip:
+    - merge
+    - rebase
+  jobs:
+    - name: biome
+      glob: "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,json,jsonc,css}"
+      run: bunx biome check --write --no-errors-on-unmatched --colors=off {staged_files}
+      stage_fixed: true
+
+    # Only the tests that (transitively) import a staged file, to keep commits fast.
+    - name: test-related
+      glob: "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+      run: bunx vitest related --run --passWithNoTests {staged_files}
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: biome-ci
+      run: bunx biome ci --colors=off
+    - name: typecheck
+      run: bun run typecheck
+    - name: test
+      run: bunx vitest run
