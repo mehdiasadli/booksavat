@@ -16,8 +16,12 @@ export default defineConfig({
 			provider: "v8",
 			reporter: ["text", "html", "lcov"],
 			reportsDirectory: "./coverage",
-			include: ["app/**", "components/**", "hooks/**", "lib/**"],
-			exclude: ["**/*.{test,spec}.{ts,tsx}", "app/**/{layout,error,not-found}.tsx"],
+			include: ["app/**", "components/**", "hooks/**", "lib/**", "server/**"],
+			exclude: [
+				"**/*.{test,spec}.{ts,tsx}",
+				"app/**/{layout,error,not-found}.tsx",
+				"server/test-support.ts",
+			],
 		},
 	},
 });

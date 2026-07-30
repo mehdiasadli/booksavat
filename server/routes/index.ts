@@ -1,0 +1,15 @@
+import { implementer } from "@/server/procedures";
+import { healthRouter } from "@/server/routes/health.route";
+import { sessionRouter } from "@/server/routes/session.route";
+import { userRouter } from "@/server/routes/user.route";
+
+/**
+ * Built through the implementer so the contract is enforced for the whole tree,
+ * not just per procedure. Middleware lives on the procedure bases instead of here
+ * to keep each pipeline explicit at its definition site.
+ */
+export const router = implementer.router({
+	health: healthRouter,
+	session: sessionRouter,
+	user: userRouter,
+});

@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono, Noto_Serif, Playfair_Display } from "next/font/google";
 
 import "./globals.css";
+import "@/lib/orpc.server";
+import { QueryProvider } from "@/components/query-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +42,9 @@ export default function RootLayout({
 			)}
 		>
 			<body>
-				<ThemeProvider>{children}</ThemeProvider>
+				<ThemeProvider>
+					<QueryProvider>{children}</QueryProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);
