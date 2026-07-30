@@ -6,7 +6,12 @@
 	"scripts": {
 		"dev": "next dev --port 3456",
 		"build": "next build",
+		"vercel-build": "bun run db:migrate && next build",
 		"start": "next start",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:check": "drizzle-kit check",
+		"db:studio": "drizzle-kit studio",
 		"lint": "biome lint",
 		"lint:fix": "biome lint --write",
 		"format": "biome format --write",
