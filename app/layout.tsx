@@ -2,8 +2,8 @@ import { Geist, Geist_Mono, Noto_Serif, Playfair_Display } from "next/font/googl
 
 import "./globals.css";
 import "@/lib/orpc.server";
-import { QueryProvider } from "@/components/query-provider";
-import { ThemeProvider } from "@/components/theme-provider";
+
+import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 
 const playfairDisplayHeading = Playfair_Display({
@@ -42,9 +42,7 @@ export default function RootLayout({
 			)}
 		>
 			<body>
-				<ThemeProvider>
-					<QueryProvider>{children}</QueryProvider>
-				</ThemeProvider>
+				<Providers>{children}</Providers>
 			</body>
 		</html>
 	);
