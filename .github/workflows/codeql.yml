@@ -16,6 +16,9 @@ concurrency:
 jobs:
   analyze:
     name: Analyze
+    # Dependabot's PRs get a read-only token, so uploading results would fail.
+    # Their dependencies are still scanned by the run on main.
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       security-events: write

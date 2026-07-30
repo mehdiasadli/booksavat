@@ -1,7 +1,9 @@
 version: 2
 
 updates:
-  - package-ecosystem: npm
+  # `bun`, not `npm`: the npm ecosystem edits package.json without touching
+  # bun.lock, which fails `bun install --frozen-lockfile` on every PR.
+  - package-ecosystem: bun
     directory: "/"
     schedule:
       interval: weekly
