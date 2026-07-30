@@ -3,6 +3,7 @@ import "server-only";
 import { createRouterClient } from "@orpc/server";
 import { headers } from "next/headers";
 
+import { getCurrentSession } from "@/lib/auth-functions";
 import { router } from "@/server";
 
 /**
@@ -13,5 +14,10 @@ import { router } from "@/server";
  * inside the context function rather than captured once.
  */
 globalThis.$client = createRouterClient(router, {
-	context: async () => ({ headers: await headers() }),
+	context: async () => ({
+		headers: await headers(),
+		// Hands the render's already-resolved session to the middleware so a guarded
+		// layout and the procedures it renders share one lookup.
+		session: await getCurrentSession(),
+	}),
 });
