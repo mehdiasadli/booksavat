@@ -1,0 +1,9 @@
+blank_issues_enabled: true
+
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/mehdiasadli/booksavat/security/advisories/new
+    about: Report privately instead of opening a public issue.
+  - name: Question or idea
+    url: https://github.com/mehdiasadli/booksavat/discussions
+    about: For open-ended discussion rather than a tracked task.

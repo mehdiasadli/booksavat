@@ -1,0 +1,35 @@
+name: Labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label by changed paths
+        uses: actions/labeler@v7
+        with:
+          sync-labels: true
+
+      - name: Label by size
+        uses: CodelyTV/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: "size:xs"
+          xs_max_size: 20
+          s_label: "size:s"
+          s_max_size: 100
+          m_label: "size:m"
+          m_max_size: 400
+          l_label: "size:l"
+          l_max_size: 1000
+          xl_label: "size:xl"
+          fail_if_xl: false
+          # Generated and vendored files should not inflate the size label.
+          files_to_ignore: "bun.lock drizzle/**/snapshot.json"

@@ -1,0 +1,62 @@
+# Source of truth for repository labels, applied by .github/workflows/labels.yml.
+# Without this, path and size labels would have to be created by hand first.
+
+- name: "area:db"
+  color: "1D76DB"
+  description: Schema, migrations, drizzle config
+- name: "area:server"
+  color: "0E8A16"
+  description: oRPC contracts, procedures, routes, middlewares
+- name: "area:auth"
+  color: "5319E7"
+  description: better-auth, sessions, guards
+- name: "area:ui"
+  color: "FBCA04"
+  description: Components, pages, styling
+- name: "area:ci"
+  color: "555555"
+  description: Workflows, hooks, tooling config
+- name: "area:tests"
+  color: "C2E0C6"
+  description: Test files and test setup
+- name: "area:docs"
+  color: "0075CA"
+  description: Documentation
+- name: "area:deps"
+  color: "BFD4F2"
+  description: Dependency changes
+
+- name: "size:xs"
+  color: "3CBF00"
+  description: Up to 20 changed lines
+- name: "size:s"
+  color: "5D9801"
+  description: Up to 100 changed lines
+- name: "size:m"
+  color: "7F7203"
+  description: Up to 400 changed lines
+- name: "size:l"
+  color: "A14C05"
+  description: Up to 1000 changed lines
+- name: "size:xl"
+  color: "C32607"
+  description: Over 1000 changed lines — consider splitting
+
+- name: "bug"
+  color: "D73A4A"
+  description: Something is broken
+- name: "enhancement"
+  color: "A2EEEF"
+  description: New feature or improvement
+- name: "chore"
+  color: "EDEDED"
+  description: Maintenance work
+- name: "security"
+  color: "B60205"
+  description: Security-relevant
+- name: "blocked"
+  color: "E11D48"
+  description: Waiting on something else
+- name: "good first issue"
+  color: "7057FF"
+  description: Good entry point for newcomers

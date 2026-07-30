@@ -1,0 +1,56 @@
+# Consumed by actions/labeler. Label names must exist — .github/labels.yml owns them.
+"area:db":
+  - changed-files:
+      - any-glob-to-any-file:
+          - db/**
+          - drizzle/**
+          - drizzle.config.ts
+
+"area:server":
+  - changed-files:
+      - any-glob-to-any-file:
+          - server/**
+          - app/rpc/**
+          - lib/orpc*.ts
+
+"area:auth":
+  - changed-files:
+      - any-glob-to-any-file:
+          - lib/auth*.ts
+          - app/api/auth/**
+          - app/(auth)/**
+
+"area:ui":
+  - changed-files:
+      - any-glob-to-any-file:
+          - components/**
+          - app/**/*.tsx
+          - app/globals.css
+
+"area:ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+          - lefthook.yml
+          - biome.json
+          - commitlint.config.mjs
+
+"area:tests":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.test.ts"
+          - "**/*.test.tsx"
+          - vitest.config.mts
+          - vitest.setup.ts
+
+"area:docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - docs/**
+
+"area:deps":
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - bun.lock

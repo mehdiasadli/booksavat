@@ -1,0 +1,61 @@
+name: Bug report
+description: Something behaves differently than it should
+labels: ["bug"]
+
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to /login
+        2. Sign in with Google
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Auth / sessions
+        - Database / migrations
+        - API (oRPC)
+        - UI
+        - Build / tooling
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where
+      options:
+        - Local development
+        - Vercel preview
+        - Production
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or errors
+      description: Console output, server logs, or a stack trace. Redact secrets.
+      render: shell
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The release tag or commit SHA you are on.

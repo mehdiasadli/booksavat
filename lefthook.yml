@@ -17,6 +17,11 @@ pre-commit:
       glob: "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
       run: bunx vitest related --run --passWithNoTests {staged_files}
 
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: bunx commitlint --edit {1}
+
 pre-push:
   parallel: true
   jobs:
@@ -26,3 +31,6 @@ pre-push:
       run: bun run typecheck
     - name: test
       run: bunx vitest run
+    # Cheap guard against pushing a schema change with no migration.
+    - name: db-check
+      run: bun run db:check
