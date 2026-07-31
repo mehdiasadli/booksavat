@@ -1,16 +1,16 @@
-"use client";
+import type { Metadata } from "next";
 
-import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import { HomePage } from "@/app/(site)/home-page";
+import { APP_NAME } from "@/lib/constants";
+import { buildMetadata } from "@/lib/seo";
 
-export default function HomePage() {
-	async function logout() {
-		await authClient.signOut();
-	}
+export const metadata: Metadata = buildMetadata({
+	title: "Home",
+	description: `Your ${APP_NAME} home — shelves, friends, clubs, and reading sessions.`,
+	path: "/",
+	noIndex: true,
+});
 
-	return (
-		<div>
-			<Button onClick={logout}>Logout</Button>
-		</div>
-	);
+export default function Page() {
+	return <HomePage />;
 }

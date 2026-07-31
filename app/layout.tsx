@@ -7,7 +7,16 @@ import type { Metadata, Viewport } from "next";
 
 import { brandAssets } from "@/components/brand";
 import { Providers } from "@/components/providers";
-import { APP_NAME, CURRENT_URL, PRODUCTION_URL } from "@/lib/constants";
+import { APP_NAME } from "@/lib/constants";
+import {
+	APP_DESCRIPTION,
+	APP_KEYWORDS,
+	APP_TAGLINE,
+	absoluteUrl,
+	BRAND_COLOR,
+	buildWebsiteJsonLd,
+	getSiteUrl,
+} from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 const playfairDisplayHeading = Playfair_Display({
@@ -27,41 +36,55 @@ const fontMono = Geist_Mono({
 	variable: "--font-mono",
 });
 
-const APP_DESCRIPTION = "BookSavat is a platform for reading books together with your friends.";
-
 export const metadata: Metadata = {
-	metadataBase: new URL(process.env.VERCEL_ENV === "production" ? PRODUCTION_URL : CURRENT_URL),
+	metadataBase: new URL(getSiteUrl()),
 	title: {
-		default: APP_NAME,
+		default: `${APP_NAME} — ${APP_TAGLINE}`,
 		template: `%s | ${APP_NAME}`,
 	},
 	description: APP_DESCRIPTION,
 	applicationName: APP_NAME,
+	authors: [{ name: APP_NAME, url: getSiteUrl() }],
+	creator: APP_NAME,
+	publisher: APP_NAME,
+	keywords: [...APP_KEYWORDS],
+	category: "books",
+	referrer: "origin-when-cross-origin",
+	formatDetection: {
+		email: false,
+		address: false,
+		telephone: false,
+	},
 	appleWebApp: {
 		title: APP_NAME,
 		capable: true,
+		statusBarStyle: "default",
 	},
 	openGraph: {
 		type: "website",
+		locale: "en_US",
+		url: absoluteUrl("/"),
 		siteName: APP_NAME,
-		title: APP_NAME,
+		title: `${APP_NAME} — ${APP_TAGLINE}`,
 		description: APP_DESCRIPTION,
 		images: [
 			{
 				url: brandAssets.og,
 				width: 1200,
 				height: 630,
-				alt: APP_NAME,
+				alt: `${APP_NAME} — ${APP_TAGLINE}`,
 			},
 		],
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: APP_NAME,
+		title: `${APP_NAME} — ${APP_TAGLINE}`,
 		description: APP_DESCRIPTION,
 		images: [brandAssets.og],
 	},
-	// File conventions also provide favicon.ico, icon0.svg, icon1.png, apple-icon.png.
+	alternates: {
+		canonical: absoluteUrl("/"),
+	},
 	icons: {
 		icon: [
 			{ url: "/favicon.ico", sizes: "48x48" },
@@ -69,15 +92,29 @@ export const metadata: Metadata = {
 			{ url: "/icon1.png", sizes: "96x96", type: "image/png" },
 		],
 		apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+		shortcut: ["/favicon.ico"],
 	},
-	manifest: "/manifest.json",
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-image-preview": "large",
+			"max-snippet": -1,
+			"max-video-preview": -1,
+		},
+	},
 };
 
 export const viewport: Viewport = {
 	themeColor: [
-		{ media: "(prefers-color-scheme: light)", color: "#F0B100" },
-		{ media: "(prefers-color-scheme: dark)", color: "#F0B100" },
+		{ media: "(prefers-color-scheme: light)", color: BRAND_COLOR },
+		{ media: "(prefers-color-scheme: dark)", color: BRAND_COLOR },
 	],
+	colorScheme: "light dark",
+	width: "device-width",
+	initialScale: 1,
 };
 
 export default function RootLayout({
@@ -85,6 +122,8 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const websiteJsonLd = buildWebsiteJsonLd();
+
 	return (
 		<html
 			lang="en"
@@ -99,6 +138,11 @@ export default function RootLayout({
 			)}
 		>
 			<body>
+				<script
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD from a trusted local builder
+					dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+				/>
 				<Providers>{children}</Providers>
 			</body>
 		</html>

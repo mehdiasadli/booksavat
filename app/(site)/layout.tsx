@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 
 import { redirectIfNotAuthenticated } from "@/lib/auth-functions";
+import { APP_NAME } from "@/lib/constants";
+import { APP_DESCRIPTION, buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = {
-	description:
-		"BookSavat is a platform for managing your books, and be a part of reading sessions with your friends.",
+	...buildMetadata({
+		description: APP_DESCRIPTION,
+		path: "/",
+		noIndex: true,
+	}),
+	title: {
+		default: APP_NAME,
+		template: `%s | ${APP_NAME}`,
+	},
 };
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {

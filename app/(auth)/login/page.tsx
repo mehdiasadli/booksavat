@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
 
 import LoginBlock from "@/app/(auth)/login/login-block";
+import { APP_NAME } from "@/lib/constants";
+import { buildMetadata } from "@/lib/seo";
 
-const TITLE = "Login";
-const DESCRIPTION = "Login to your BookSavat account";
-
-export const metadata: Metadata = {
-	title: TITLE,
-	description: DESCRIPTION,
-	openGraph: {
-		title: TITLE,
-		description: DESCRIPTION,
-	},
-};
+export const metadata: Metadata = buildMetadata({
+	title: "Sign in",
+	description: `Sign in to your ${APP_NAME} account with Google to continue reading with friends.`,
+	path: "/login",
+	noIndex: true,
+});
 
 export default function LoginPage() {
 	return (

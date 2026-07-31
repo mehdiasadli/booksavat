@@ -4,12 +4,13 @@ import { toORPCError } from "@orpc/client";
 import type { Metadata } from "next";
 import { cache } from "react";
 
-import { APP_NAME, CURRENT_URL } from "@/lib/constants";
+import { APP_NAME } from "@/lib/constants";
 import { orpc } from "@/lib/orpc";
+import { absoluteUrl } from "@/lib/seo";
 import type { User } from "@/server/contracts";
 
 export function getUserProfileUrl(username: string): string {
-	return `${CURRENT_URL}/users/${username}`;
+	return absoluteUrl(`/users/${username}`);
 }
 
 export const getPublicUserProfile = cache(async (username: string): Promise<User | null> => {
