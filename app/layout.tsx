@@ -3,6 +3,8 @@ import { Geist, Geist_Mono, Noto_Serif, Playfair_Display } from "next/font/googl
 import "./globals.css";
 import "@/lib/orpc.server";
 
+import type { Metadata } from "next";
+
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +24,26 @@ const fontMono = Geist_Mono({
 	subsets: ["latin"],
 	variable: "--font-mono",
 });
+
+export const metadata: Metadata = {
+	appleWebApp: {
+		title: "BookSavat",
+	},
+	openGraph: {
+		title: "BookSavat",
+		description: "BookSavat is a platform for reading books together with your friends.",
+		images: "/og.png",
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "BookSavat",
+		description: "BookSavat is a platform for reading books together with your friends.",
+		images: "/og.png",
+	},
+	icons: {
+		icon: "/favicon.ico",
+	},
+};
 
 export default function RootLayout({
 	children,
