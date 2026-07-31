@@ -3,11 +3,12 @@ import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { user as userTable } from "@/db/schema";
 import type { ViewerUser } from "@/server/context";
 import { type User, userRoleSchema } from "@/server/contracts";
-import { adminProcedure, protectedProcedure } from "@/server/procedures";
+import { adminProcedure, protectedProcedure, publicProcedure } from "@/server/procedures";
 
 /** Columns that are safe to return; keeps the query and the contract in step. */
 const publicColumns = {
 	id: userTable.id,
+	username: userTable.username,
 	name: userTable.name,
 	email: userTable.email,
 	image: userTable.image,
@@ -22,6 +23,7 @@ const publicColumns = {
 export function toPublicUser(sessionUser: ViewerUser): User {
 	return {
 		id: sessionUser.id,
+		username: sessionUser.username,
 		name: sessionUser.name,
 		email: sessionUser.email,
 		image: sessionUser.image ?? null,
@@ -34,7 +36,23 @@ export const me = protectedProcedure.user.me.handler(({ context }) =>
 	toPublicUser(context.viewer.user),
 );
 
-export const list = adminProcedure.user.list.handler(async ({ input, context }) => {
+export const getByUsername = publicProcedure.user.getByUsername.handler(
+	async ({ input, context, errors }) => {
+		const user = await context.db
+			.select(publicColumns)
+			.from(userTable)
+			.where(eq(userTable.username, input.username))
+			.limit(1);
+
+		if (!user.length) {
+			throw errors.NOT_FOUND({ message: "User not found" });
+		}
+
+		return user[0];
+	},
+);
+
+const list = adminProcedure.user.list.handler(async ({ input, context }) => {
 	const filters = [
 		input.role ? eq(userTable.role, input.role) : undefined,
 		input.search
@@ -89,4 +107,5 @@ export const userRouter = {
 	me,
 	list,
 	updateRole,
+	getByUsername,
 };
