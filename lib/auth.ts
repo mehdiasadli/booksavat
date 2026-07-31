@@ -6,7 +6,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { assertValue } from "@/lib/assert-value";
 import { CURRENT_URL, DEVELOPMENT_URL, PRODUCTION_URL } from "@/lib/constants";
-import { resolveUsernameForCreate, resolveUsernameForUpdate } from "@/lib/username";
+import { resolveUsernameForCreate, resolveUsernameForUpdate } from "@/lib/users/username";
 
 assertValue(process.env.GOOGLE_CLIENT_ID, "GOOGLE_CLIENT_ID is not set");
 assertValue(process.env.GOOGLE_CLIENT_SECRET, "GOOGLE_CLIENT_SECRET is not set");
