@@ -3,9 +3,11 @@ import { Geist, Geist_Mono, Noto_Serif, Playfair_Display } from "next/font/googl
 import "./globals.css";
 import "@/lib/orpc.server";
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
+import { brandAssets } from "@/components/brand";
 import { Providers } from "@/components/providers";
+import { APP_NAME, CURRENT_URL, PRODUCTION_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const playfairDisplayHeading = Playfair_Display({
@@ -25,24 +27,57 @@ const fontMono = Geist_Mono({
 	variable: "--font-mono",
 });
 
+const APP_DESCRIPTION = "BookSavat is a platform for reading books together with your friends.";
+
 export const metadata: Metadata = {
+	metadataBase: new URL(process.env.VERCEL_ENV === "production" ? PRODUCTION_URL : CURRENT_URL),
+	title: {
+		default: APP_NAME,
+		template: `%s | ${APP_NAME}`,
+	},
+	description: APP_DESCRIPTION,
+	applicationName: APP_NAME,
 	appleWebApp: {
-		title: "BookSavat",
+		title: APP_NAME,
+		capable: true,
 	},
 	openGraph: {
-		title: "BookSavat",
-		description: "BookSavat is a platform for reading books together with your friends.",
-		images: "/og.png",
+		type: "website",
+		siteName: APP_NAME,
+		title: APP_NAME,
+		description: APP_DESCRIPTION,
+		images: [
+			{
+				url: brandAssets.og,
+				width: 1200,
+				height: 630,
+				alt: APP_NAME,
+			},
+		],
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "BookSavat",
-		description: "BookSavat is a platform for reading books together with your friends.",
-		images: "/og.png",
+		title: APP_NAME,
+		description: APP_DESCRIPTION,
+		images: [brandAssets.og],
 	},
+	// File conventions also provide favicon.ico, icon0.svg, icon1.png, apple-icon.png.
 	icons: {
-		icon: "/favicon.ico",
+		icon: [
+			{ url: "/favicon.ico", sizes: "48x48" },
+			{ url: "/icon0.svg", type: "image/svg+xml" },
+			{ url: "/icon1.png", sizes: "96x96", type: "image/png" },
+		],
+		apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
 	},
+	manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+	themeColor: [
+		{ media: "(prefers-color-scheme: light)", color: "#F0B100" },
+		{ media: "(prefers-color-scheme: dark)", color: "#F0B100" },
+	],
 };
 
 export default function RootLayout({

@@ -1,6 +1,8 @@
 {
 	"name": "BookSavat",
 	"short_name": "BookSavat",
+	"description": "BookSavat is a platform for reading books together with your friends.",
+	"start_url": "/",
 	"icons": [
 		{
 			"src": "/web-app-manifest-192x192.png",
@@ -13,9 +15,15 @@
 			"sizes": "512x512",
 			"type": "image/png",
 			"purpose": "maskable"
+		},
+		{
+			"src": "/brand-icon.png",
+			"sizes": "1024x1024",
+			"type": "image/png",
+			"purpose": "any"
 		}
 	],
-	"theme_color": "#ffffff",
-	"background_color": "#ffffff",
+	"theme_color": "#F0B100",
+	"background_color": "#F0B100",
 	"display": "standalone"
 }

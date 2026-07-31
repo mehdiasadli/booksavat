@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { BookSavatLogo } from "@/components/logos/booksavat";
+import { BrandIcon } from "@/components/brand";
 import { GoogleLogo } from "@/components/logos/google";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,8 +36,8 @@ export default function LoginBlock() {
 	return (
 		<section className="flex w-full items-center justify-center bg-background px-6 py-12 text-foreground">
 			<Card className="w-full max-w-sm">
-				<CardHeader className="items-center text-center">
-					<BookSavatLogo />
+				<CardHeader className="justify-items-center text-center">
+					<BrandIcon title="BookSavat" className="size-10" />
 					<CardTitle className="mt-4 text-xl font-bold tracking-tight">
 						Sign In To BookSavat
 					</CardTitle>
