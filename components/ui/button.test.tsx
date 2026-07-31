@@ -46,4 +46,30 @@ describe("<Button />", () => {
 			"mt-2",
 		);
 	});
+
+	it("shows a spinner alone when loading without loadingText", () => {
+		render(
+			<Button loading loadingText={undefined}>
+				Save
+			</Button>,
+		);
+
+		const button = screen.getByRole("button");
+		expect(button).toBeDisabled();
+		expect(button).toHaveAttribute("aria-busy", "true");
+		expect(button).not.toHaveTextContent("Save");
+		expect(button.querySelector("svg")).toBeInTheDocument();
+	});
+
+	it("shows loader beside loadingText when both are set", () => {
+		render(
+			<Button loading loadingText="Saving">
+				Save
+			</Button>,
+		);
+
+		const button = screen.getByRole("button", { name: "Saving" });
+		expect(button).toBeDisabled();
+		expect(button.querySelector("svg")).toBeInTheDocument();
+	});
 });

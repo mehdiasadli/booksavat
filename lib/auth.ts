@@ -13,6 +13,7 @@ assertValue(process.env.BETTER_AUTH_URL, "BETTER_AUTH_URL is not set");
 assertValue(process.env.BETTER_AUTH_SECRET, "BETTER_AUTH_SECRET is not set");
 
 const isDev = process.env.NODE_ENV === "development";
+const useOAuthProxy = process.env.VERCEL_ENV === "preview";
 
 export const auth = betterAuth({
 	baseURL: process.env.BETTER_AUTH_URL,
@@ -52,18 +53,13 @@ export const auth = betterAuth({
 		},
 	},
 
-	experimental: {
-		joins: true,
-	},
-
 	trustedOrigins: [PRODUCTION_URL, DEVELOPMENT_URL],
 
 	plugins: [
 		openAPI(),
-		oAuthProxy({
-			productionURL: PRODUCTION_URL,
-			currentURL: CURRENT_URL,
-		}),
+		...(useOAuthProxy
+			? [oAuthProxy({ productionURL: PRODUCTION_URL, currentURL: CURRENT_URL })]
+			: []),
 		...(isDev ? [testUtils()] : []),
 	],
 });
