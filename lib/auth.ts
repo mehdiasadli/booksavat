@@ -6,6 +6,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { assertValue } from "@/lib/assert-value";
 import { CURRENT_URL, DEVELOPMENT_URL, PRODUCTION_URL } from "@/lib/constants";
+import { resolveUsernameForCreate, resolveUsernameForUpdate } from "@/lib/username";
 
 assertValue(process.env.GOOGLE_CLIENT_ID, "GOOGLE_CLIENT_ID is not set");
 assertValue(process.env.GOOGLE_CLIENT_SECRET, "GOOGLE_CLIENT_SECRET is not set");
@@ -41,6 +42,13 @@ export const auth = betterAuth({
 				input: false,
 				returned: true,
 			},
+			username: {
+				type: "string",
+				unique: true,
+				required: true,
+				input: true,
+				returned: true,
+			},
 		},
 	},
 
@@ -50,6 +58,36 @@ export const auth = betterAuth({
 
 		database: {
 			generateId: "uuid",
+		},
+	},
+
+	databaseHooks: {
+		user: {
+			create: {
+				before: async (user) => {
+					const username = await resolveUsernameForCreate(user);
+
+					if (!username) {
+						return;
+					}
+
+					return { data: { ...user, username } };
+				},
+			},
+			update: {
+				before: async (user, context) => {
+					if (typeof user.username !== "string") {
+						return;
+					}
+
+					const username = await resolveUsernameForUpdate(
+						user.username,
+						context?.context?.session?.user?.id ?? ("id" in user ? String(user.id) : undefined),
+					);
+
+					return { data: { ...user, username } };
+				},
+			},
 		},
 	},
 
