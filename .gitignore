@@ -38,3 +38,6 @@ next-env.d.ts
 
 # git hooks (personal overrides)
 lefthook-local.yml
+
+# local product planning (not tracked)
+ROADMAP.md
