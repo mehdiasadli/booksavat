@@ -67,6 +67,12 @@ interface GenerateUniqueSlugOptions {
 	onMaxAttemptsExceeded?: ((text: string, maxAttempts: number) => Error) | Error;
 }
 
+function createRandomSuffix(length: number): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(length));
+
+	return Array.from(bytes, (byte) => (byte % 36).toString(36)).join("");
+}
+
 export async function generateUniqueSlug(
 	text: string,
 	checkIfExists: (slug: string) => Promise<boolean | number>,
@@ -96,9 +102,7 @@ export async function generateUniqueSlug(
 
 		switch (suffixVariant) {
 			case "random": {
-				const randomSuffix = Math.random()
-					.toString(36)
-					.substring(2, 2 + Math.max(randomSuffixLength, 1));
+				const randomSuffix = createRandomSuffix(Math.max(randomSuffixLength, 1));
 				result = `${originalSlug}${normalizedSuffixSeparator}${randomSuffix}`;
 				break;
 			}

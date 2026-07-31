@@ -3,9 +3,10 @@ import { and, eq, ne } from "drizzle-orm";
 
 import { db } from "@/db";
 import { user as userTable } from "@/db/schema";
-import { generateUniqueSlug, isValidSlug, slugify } from "@/lib/slugify";
+import { isValidSlug, slugify } from "@/lib/slugify";
 
 const USERNAME_MAX_LENGTH = 30;
+const MAX_USERNAME_ATTEMPTS = 100;
 
 function normalizeUsernameSeed(text: string): string {
 	const normalized = slugify(text).replace(/_+/g, "_").replace(/^_|_$/g, "");
@@ -30,14 +31,23 @@ async function usernameExists(username: string, excludeUserId?: string): Promise
 }
 
 export async function resolveUniqueUsername(seed: string): Promise<string> {
-	const normalizedSeed = normalizeUsernameSeed(seed);
+	const base = normalizeUsernameSeed(seed);
 
-	return generateUniqueSlug(normalizedSeed, (username) => usernameExists(username), {
-		slugify: false,
-		suffixSeparator: "_",
-		suffixVariant: "counter",
-		maxAttempts: 100,
-	});
+	if (!(await usernameExists(base))) {
+		return base;
+	}
+
+	for (let attempt = 1; attempt <= MAX_USERNAME_ATTEMPTS; attempt++) {
+		const candidate = `${base}_${attempt}`;
+
+		if (!(await usernameExists(candidate))) {
+			return candidate;
+		}
+	}
+
+	throw new Error(
+		`Failed to generate unique username after ${MAX_USERNAME_ATTEMPTS} attempts for seed: ${seed}`,
+	);
 }
 
 export async function resolveUsernameForCreate(user: {
