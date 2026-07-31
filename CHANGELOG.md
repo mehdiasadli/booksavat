@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.1.0...booksavat-v0.2.0) (2026-07-31)
+
+
+### Features
+
+* create Open Library SDK for the application ([#11](https://github.com/mehdiasadli/booksavat/issues/11)) ([8f3c2b6](https://github.com/mehdiasadli/booksavat/commit/8f3c2b6bb59f844d1b6f3702db435cc7cc055d4d))
+* remove forcing authentication for home page ([3f2d5fb](https://github.com/mehdiasadli/booksavat/commit/3f2d5fb4b924e6930dd16a6ac8acf0df665c70b5))
+
 ## [0.1.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.0.1...booksavat-v0.1.0) (2026-07-31)
 
 
