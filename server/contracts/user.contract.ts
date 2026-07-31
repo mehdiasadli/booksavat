@@ -13,6 +13,7 @@ export type UserRole = z.infer<typeof userRoleSchema>;
 /** Public projection of a user row. Anything not listed here never leaves the server. */
 export const userSchema = z.object({
 	id: z.uuid(),
+	username: z.string(),
 	name: z.string(),
 	email: z.email(),
 	image: z.url().nullable(),
@@ -56,8 +57,19 @@ export const updateUserRoleContract = base
 	.input(z.object({ id: z.uuid(), role: userRoleSchema }))
 	.output(userSchema);
 
+export const getByUsernameContract = base
+	.route({
+		method: "GET",
+		path: "/user/{username}",
+		tags: ["user"],
+		summary: "Get a user by their username",
+	})
+	.input(z.object({ username: z.string() }))
+	.output(userSchema);
+
 export const userContract = {
 	me: meContract,
 	list: listUsersContract,
 	updateRole: updateUserRoleContract,
+	getByUsername: getByUsernameContract,
 };
