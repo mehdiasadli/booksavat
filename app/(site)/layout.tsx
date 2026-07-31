@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { redirectIfNotAuthenticated } from "@/lib/auth-functions";
 import { APP_NAME } from "@/lib/constants";
 import { APP_DESCRIPTION, buildMetadata } from "@/lib/seo";
 
@@ -17,7 +16,5 @@ export const metadata: Metadata = {
 };
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-	await redirectIfNotAuthenticated();
-
 	return <div>{children}</div>;
 }
