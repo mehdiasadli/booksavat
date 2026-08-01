@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -96,12 +97,14 @@ export function SiteHeader() {
 								}
 							/>
 							<DropdownMenuContent align="end" className="min-w-48">
-								<DropdownMenuLabel className="font-normal">
-									<div className="truncate font-medium">{session.user.name}</div>
-									<div className="truncate text-xs text-muted-foreground">
-										@{session.user.username}
-									</div>
-								</DropdownMenuLabel>
+								<DropdownMenuGroup>
+									<DropdownMenuLabel className="font-normal">
+										<div className="truncate font-medium">{session.user.name}</div>
+										<div className="truncate text-xs text-muted-foreground">
+											@{session.user.username}
+										</div>
+									</DropdownMenuLabel>
+								</DropdownMenuGroup>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									render={<Link href={`/users/${session.user.username}`}>Profile</Link>}
