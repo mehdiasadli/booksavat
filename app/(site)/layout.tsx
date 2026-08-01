@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SiteShell } from "@/components/layout/site-shell";
 import { APP_NAME } from "@/lib/constants";
 import { APP_DESCRIPTION, buildMetadata } from "@/lib/seo";
 
@@ -7,7 +8,6 @@ export const metadata: Metadata = {
 	...buildMetadata({
 		description: APP_DESCRIPTION,
 		path: "/",
-		noIndex: true,
 	}),
 	title: {
 		default: APP_NAME,
@@ -15,6 +15,6 @@ export const metadata: Metadata = {
 	},
 };
 
-export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-	return <div>{children}</div>;
+export default function SiteLayout({ children }: { children: React.ReactNode }) {
+	return <SiteShell>{children}</SiteShell>;
 }

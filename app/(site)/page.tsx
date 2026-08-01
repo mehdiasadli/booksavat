@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
 	title: "Home",
-	description: `Your ${APP_NAME} home — shelves, friends, clubs, and reading sessions.`,
+	description: `Your ${APP_NAME} home — search books, shelves, friends, clubs, and reading sessions.`,
 	path: "/",
 	noIndex: true,
 });

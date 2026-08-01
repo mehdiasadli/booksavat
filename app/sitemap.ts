@@ -5,12 +5,20 @@ import { user } from "@/db/schema";
 import { absoluteUrl } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+	// Keep in sync with public, indexable static routes under app/.
+	// Dynamic Open Library work/edition URLs are not enumerated here.
 	const staticRoutes: MetadataRoute.Sitemap = [
 		{
 			url: absoluteUrl("/"),
 			lastModified: new Date(),
 			changeFrequency: "weekly",
 			priority: 1,
+		},
+		{
+			url: absoluteUrl("/books"),
+			lastModified: new Date(),
+			changeFrequency: "daily",
+			priority: 0.9,
 		},
 	];
 

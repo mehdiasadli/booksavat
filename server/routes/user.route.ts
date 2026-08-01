@@ -21,6 +21,12 @@ const publicColumns = {
  * the session user is reshaped into the contract's projection.
  */
 export function toPublicUser(sessionUser: ViewerUser): User {
+	// `username` is optional in better-auth's inferred type (OAuth create path),
+	// but every persisted user has one from the create hook / DB constraint.
+	if (!sessionUser.username) {
+		throw new Error(`User ${sessionUser.id} is missing a username`);
+	}
+
 	return {
 		id: sessionUser.id,
 		username: sessionUser.username,

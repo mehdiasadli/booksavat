@@ -1,4 +1,5 @@
 import { implementer } from "@/server/procedures";
+import { bookRouter } from "@/server/routes/book.route";
 import { healthRouter } from "@/server/routes/health.route";
 import { sessionRouter } from "@/server/routes/session.route";
 import { userRouter } from "@/server/routes/user.route";
@@ -12,4 +13,5 @@ export const router = implementer.router({
 	health: healthRouter,
 	session: sessionRouter,
 	user: userRouter,
+	book: bookRouter,
 });

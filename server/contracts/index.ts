@@ -1,5 +1,6 @@
 import type { InferContractRouterInputs, InferContractRouterOutputs } from "@orpc/contract";
 
+import { bookContract } from "@/server/contracts/book.contract";
 import { healthContract } from "@/server/contracts/health.contract";
 import { sessionContract } from "@/server/contracts/session.contract";
 import { userContract } from "@/server/contracts/user.contract";
@@ -12,6 +13,7 @@ export const contract = {
 	health: healthContract,
 	session: sessionContract,
 	user: userContract,
+	book: bookContract,
 };
 
 export type AppContract = typeof contract;
@@ -19,6 +21,7 @@ export type Inputs = InferContractRouterInputs<AppContract>;
 export type Outputs = InferContractRouterOutputs<AppContract>;
 
 export * from "@/server/contracts/base.contract";
+export * from "@/server/contracts/book.contract";
 export * from "@/server/contracts/errors";
 export * from "@/server/contracts/health.contract";
 export * from "@/server/contracts/session.contract";
