@@ -65,10 +65,10 @@ export function EditionDetail({ edition }: EditionDetailProps) {
 						) : null}
 					</div>
 
-					<div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
 						{edition.publishDate ? <span>{edition.publishDate}</span> : null}
 						{edition.pageCount != null ? <span>{edition.pageCount} pages</span> : null}
-						<span className="font-mono text-xs">{edition.editionId}</span>
+						<span className="font-mono">{edition.editionId}</span>
 					</div>
 
 					<Button

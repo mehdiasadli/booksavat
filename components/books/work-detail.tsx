@@ -64,7 +64,7 @@ export function WorkDetail({ work, editions, editionTotal }: WorkDetailProps) {
 						</p>
 					) : null}
 
-					<div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
 						{work.firstPublishDate ? <span>First published {work.firstPublishDate}</span> : null}
 						{work.editionCount != null ? (
 							<span>
@@ -72,7 +72,7 @@ export function WorkDetail({ work, editions, editionTotal }: WorkDetailProps) {
 								{work.editionCount === 1 ? "" : "s"}
 							</span>
 						) : null}
-						<span className="font-mono text-xs">{work.workId}</span>
+						<span className="font-mono">{work.workId}</span>
 					</div>
 
 					<Button
