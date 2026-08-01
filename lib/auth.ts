@@ -6,6 +6,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { assertValue } from "@/lib/assert-value";
 import { CURRENT_URL, PRODUCTION_URL, TRUSTED_ORIGINS } from "@/lib/constants";
+import { ensureSystemShelves } from "@/lib/shelves/system.server";
 import { resolveUsernameForCreate, resolveUsernameForUpdate } from "@/lib/users/username";
 
 assertValue(process.env.GOOGLE_CLIENT_ID, "GOOGLE_CLIENT_ID is not set");
@@ -74,6 +75,9 @@ export const auth = betterAuth({
 					}
 
 					return { data: { ...user, username } };
+				},
+				after: async (user) => {
+					await ensureSystemShelves(db, user.id);
 				},
 			},
 			update: {
