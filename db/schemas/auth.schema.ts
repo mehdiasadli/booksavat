@@ -1,4 +1,3 @@
-import { defineRelations } from "drizzle-orm";
 import { boolean, index, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { createdAt, id, updatedAt } from "@/db/utils";
@@ -72,24 +71,3 @@ export const verification = pgTable(
 	},
 	(table) => [index("verification_identifier_idx").on(table.identifier)],
 );
-
-export const authRelations = defineRelations({ user, session, account, verification }, (r) => ({
-	user: {
-		sessions: r.many.session(),
-		accounts: r.many.account(),
-	},
-	session: {
-		user: r.one.user({
-			from: r.session.userId,
-			to: r.user.id,
-			optional: false,
-		}),
-	},
-	account: {
-		user: r.one.user({
-			from: r.account.userId,
-			to: r.user.id,
-			optional: false,
-		}),
-	},
-}));

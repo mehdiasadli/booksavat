@@ -2,6 +2,7 @@ import { ExternalLink } from "lucide-react";
 
 import { BookCover } from "@/components/books/book-cover";
 import { WorkEditions } from "@/components/books/work-editions";
+import { AddToShelf } from "@/components/shelves/add-to-shelf";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -76,17 +77,20 @@ export function WorkDetail({ work, editions, editionTotal, editionNextOffset }: 
 						<span className="font-mono">{work.workId}</span>
 					</div>
 
-					<Button
-						variant="outline"
-						size="sm"
-						nativeButton={false}
-						render={
-							<a href={work.openLibraryUrl} target="_blank" rel="noreferrer">
-								Open Library
-								<ExternalLink className="size-3.5" />
-							</a>
-						}
-					/>
+					<div className="flex flex-wrap items-center gap-2">
+						<AddToShelf workId={work.workId} />
+						<Button
+							variant="outline"
+							size="sm"
+							nativeButton={false}
+							render={
+								<a href={work.openLibraryUrl} target="_blank" rel="noreferrer">
+									Open Library
+									<ExternalLink className="size-3.5" />
+								</a>
+							}
+						/>
+					</div>
 				</div>
 			</div>
 
