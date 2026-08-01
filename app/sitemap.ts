@@ -12,6 +12,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			changeFrequency: "weekly",
 			priority: 1,
 		},
+		{
+			url: absoluteUrl("/books"),
+			lastModified: new Date(),
+			changeFrequency: "daily",
+			priority: 0.9,
+		},
 	];
 
 	const users = await db
