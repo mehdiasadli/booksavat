@@ -5,7 +5,7 @@ import { oAuthProxy, openAPI, testUtils } from "better-auth/plugins";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { assertValue } from "@/lib/assert-value";
-import { CURRENT_URL, DEVELOPMENT_URL, PRODUCTION_URL } from "@/lib/constants";
+import { CURRENT_URL, PRODUCTION_URL, TRUSTED_ORIGINS } from "@/lib/constants";
 import { resolveUsernameForCreate, resolveUsernameForUpdate } from "@/lib/users/username";
 
 assertValue(process.env.GOOGLE_CLIENT_ID, "GOOGLE_CLIENT_ID is not set");
@@ -91,7 +91,7 @@ export const auth = betterAuth({
 		},
 	},
 
-	trustedOrigins: [PRODUCTION_URL, DEVELOPMENT_URL],
+	trustedOrigins: TRUSTED_ORIGINS,
 
 	plugins: [
 		openAPI(),
