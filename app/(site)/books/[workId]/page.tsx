@@ -57,5 +57,12 @@ export default async function WorkPage({ params }: WorkPageProps) {
 		notFound();
 	}
 
-	return <WorkDetail work={work} editions={editions.items} editionTotal={editions.total} />;
+	return (
+		<WorkDetail
+			work={work}
+			editions={editions.items}
+			editionTotal={editions.total}
+			editionNextOffset={editions.nextOffset}
+		/>
+	);
 }

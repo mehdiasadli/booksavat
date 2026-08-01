@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
-import Link from "next/link";
 
 import { BookCover } from "@/components/books/book-cover";
+import { WorkEditions } from "@/components/books/work-editions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +11,7 @@ interface WorkDetailProps {
 	work: BookWorkDetail;
 	editions: BookEditionSummary[];
 	editionTotal: number;
+	editionNextOffset: number | null;
 }
 
 function MetaList({ label, values }: { label: string; values: string[] }) {
@@ -32,7 +33,7 @@ function MetaList({ label, values }: { label: string; values: string[] }) {
 	);
 }
 
-export function WorkDetail({ work, editions, editionTotal }: WorkDetailProps) {
+export function WorkDetail({ work, editions, editionTotal, editionNextOffset }: WorkDetailProps) {
 	return (
 		<article className="space-y-8">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-start">
@@ -107,53 +108,12 @@ export function WorkDetail({ work, editions, editionTotal }: WorkDetailProps) {
 
 			<Separator />
 
-			<section className="space-y-4">
-				<div className="flex items-end justify-between gap-3">
-					<div>
-						<h2 className="font-heading text-lg font-semibold tracking-tight">Editions</h2>
-						<p className="text-sm text-muted-foreground">
-							{editionTotal > 0
-								? `Showing ${editions.length} of ${editionTotal.toLocaleString()}`
-								: "No editions listed yet"}
-						</p>
-					</div>
-				</div>
-
-				{editions.length === 0 ? (
-					<p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-						We couldn’t find editions for this work right now.
-					</p>
-				) : (
-					<ul className="grid gap-3 sm:grid-cols-2">
-						{editions.map((edition) => (
-							<li key={edition.editionId}>
-								<Link
-									href={`/books/edition/${edition.editionId}`}
-									className="flex gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/40"
-								>
-									<BookCover src={edition.coverUrl} alt={edition.title} size="sm" />
-									<div className="min-w-0 flex-1 space-y-1">
-										<p className="truncate font-medium">{edition.title}</p>
-										{edition.publishDate || edition.publishers[0] ? (
-											<p className="truncate text-xs text-muted-foreground">
-												{[edition.publishDate, edition.publishers[0]].filter(Boolean).join(" · ")}
-											</p>
-										) : null}
-										{(edition.isbn13[0] || edition.isbn10[0]) && (
-											<p className="font-mono text-[11px] text-muted-foreground">
-												ISBN {edition.isbn13[0] ?? edition.isbn10[0]}
-											</p>
-										)}
-										{edition.pageCount != null ? (
-											<p className="text-xs text-muted-foreground">{edition.pageCount} pages</p>
-										) : null}
-									</div>
-								</Link>
-							</li>
-						))}
-					</ul>
-				)}
-			</section>
+			<WorkEditions
+				workId={work.workId}
+				initialItems={editions}
+				initialTotal={editionTotal}
+				initialNextOffset={editionNextOffset}
+			/>
 		</article>
 	);
 }
