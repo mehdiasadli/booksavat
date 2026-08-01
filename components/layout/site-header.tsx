@@ -109,6 +109,9 @@ export function SiteHeader() {
 								<DropdownMenuItem
 									render={<Link href={`/users/${session.user.username}`}>Profile</Link>}
 								/>
+								<DropdownMenuItem
+									render={<Link href={`/users/${session.user.username}/shelves`}>Shelves</Link>}
+								/>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									disabled={isLoggingOut}
@@ -184,6 +187,18 @@ export function SiteHeader() {
 											>
 												<UserRound className="size-4" />
 												Profile
+											</Link>
+										}
+									/>
+									<Button
+										variant="outline"
+										nativeButton={false}
+										render={
+											<Link
+												href={`/users/${session.user.username}/shelves`}
+												onClick={() => setMobileOpen(false)}
+											>
+												Shelves
 											</Link>
 										}
 									/>

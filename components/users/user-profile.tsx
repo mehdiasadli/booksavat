@@ -1,7 +1,7 @@
 import { BookOpen, CalendarDays } from "lucide-react";
+import Link from "next/link";
 
-import ComingSoonBlock from "@/components/coming-soon";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { UserRoleBadge } from "@/components/users/user-role-badge";
 import { formatMonthYear, formatRelativeTime } from "@/lib/dates";
@@ -60,39 +60,29 @@ export function UserProfile({ user, className }: UserProfileProps) {
 				</header>
 
 				<section aria-labelledby="library-heading" className="flex flex-col gap-4">
-					<div className="flex items-center gap-3">
-						<div className="flex size-10 items-center justify-center border border-border bg-muted/30">
-							<BookOpen className="size-4" aria-hidden="true" />
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div className="flex items-center gap-3">
+							<div className="flex size-10 items-center justify-center border border-border bg-muted/30">
+								<BookOpen className="size-4" aria-hidden="true" />
+							</div>
+							<div>
+								<h2
+									id="library-heading"
+									className="font-heading text-xl font-semibold tracking-tight"
+								>
+									Library
+								</h2>
+								<p className="text-sm text-muted-foreground">
+									Wishlist, reading, completed, and custom shelves.
+								</p>
+							</div>
 						</div>
-						<div>
-							<h2
-								id="library-heading"
-								className="font-heading text-xl font-semibold tracking-tight"
-							>
-								Library
-							</h2>
-							<p className="text-sm text-muted-foreground">
-								Shelves, reading lists, and shared sessions will appear here.
-							</p>
-						</div>
+						<Button
+							size="sm"
+							nativeButton={false}
+							render={<Link href={`/users/${user.username}/shelves`}>View shelves</Link>}
+						/>
 					</div>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>Reading activity</CardTitle>
-							<CardDescription>
-								{user.name} has not published any shelves or sessions yet.
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<ComingSoonBlock
-								className="min-h-0 bg-transparent px-0 py-8"
-								iconWrapperClassName="size-10"
-								title="Library coming soon"
-								description="BookSavat is still wiring up public shelves and reading sessions. Check back soon to see what this reader is working through."
-							/>
-						</CardContent>
-					</Card>
 				</section>
 			</article>
 		</>
