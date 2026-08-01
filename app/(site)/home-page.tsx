@@ -1,50 +1,27 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
 export function HomePage() {
-	const [isLoggingOut, setIsLoggingOut] = useState(false);
 	const { data: session, isPending } = authClient.useSession();
-	const router = useRouter();
-
-	async function logout() {
-		if (!session) return;
-
-		try {
-			const { error } = await authClient.signOut();
-
-			if (error) {
-				throw new Error(error.message);
-			}
-
-			router.push("/login");
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "Failed to logout");
-		} finally {
-			setIsLoggingOut(false);
-		}
-	}
 
 	return (
-		<div>
-			{isPending ? (
-				<Loader2 className="size-4 animate-spin" />
-			) : session ? (
-				<Button loading={isLoggingOut} loadingText="Logging out..." onClick={logout}>
-					Logout
-				</Button>
-			) : (
-				<Button nativeButton={false} render={<Link href="/login">Login</Link>}>
-					Login
-				</Button>
-			)}
-		</div>
+		<section className="mx-auto flex max-w-2xl flex-col items-start gap-4 py-8">
+			<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Home</p>
+			<h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
+				{isPending
+					? "Welcome"
+					: session?.user
+						? `Welcome, ${session.user.name}`
+						: "Welcome to BookSavat"}
+			</h1>
+			<p className="text-sm text-muted-foreground text-pretty sm:text-base">
+				Search the catalog, open a work, and browse editions. Shelves and clubs come next.
+			</p>
+			<Button nativeButton={false} render={<Link href="/books">Browse books</Link>} />
+		</section>
 	);
 }
