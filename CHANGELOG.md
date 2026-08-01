@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.2.1...booksavat-v0.3.0) (2026-08-01)
+
+
+### Features
+
+* implement book details page, books search, edition page ([#16](https://github.com/mehdiasadli/booksavat/issues/16)) ([36ba92a](https://github.com/mehdiasadli/booksavat/commit/36ba92a42e262ee7ab2611b44a984bf779373e4a))
+
 ## [0.2.1](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.2.0...booksavat-v0.2.1) (2026-08-01)
 
 
