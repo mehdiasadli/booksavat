@@ -68,6 +68,7 @@ export function EditionDetail({ edition }: EditionDetailProps) {
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
 						{edition.publishDate ? <span>{edition.publishDate}</span> : null}
 						{edition.pageCount != null ? <span>{edition.pageCount} pages</span> : null}
+						{edition.languages.length > 0 ? <span>{edition.languages.join(", ")}</span> : null}
 						<span className="font-mono">{edition.editionId}</span>
 					</div>
 

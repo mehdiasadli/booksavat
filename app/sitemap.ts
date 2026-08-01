@@ -5,6 +5,8 @@ import { user } from "@/db/schema";
 import { absoluteUrl } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+	// Keep in sync with public, indexable static routes under app/.
+	// Dynamic Open Library work/edition URLs are not enumerated here.
 	const staticRoutes: MetadataRoute.Sitemap = [
 		{
 			url: absoluteUrl("/"),

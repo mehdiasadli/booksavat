@@ -59,6 +59,8 @@ function EditionCard({ edition }: { edition: BookEditionSummary }) {
 	const publishLine =
 		[edition.publishDate, edition.publishers[0]].filter(Boolean).join(" · ") ||
 		"Publication details not provided";
+	const languageLine =
+		edition.languages.length > 0 ? edition.languages.join(", ") : "Language not provided";
 	const isbn = edition.isbn13[0] ?? edition.isbn10[0];
 	const isbnLine = isbn ? `ISBN ${isbn}` : "ISBN not provided";
 	const pagesLine =
@@ -73,6 +75,14 @@ function EditionCard({ edition }: { edition: BookEditionSummary }) {
 			<div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
 				<p className="truncate font-medium">{edition.title}</p>
 				<p className="truncate text-xs text-muted-foreground">{publishLine}</p>
+				<p
+					className={cn(
+						"truncate text-xs",
+						edition.languages.length > 0 ? "text-muted-foreground" : "text-muted-foreground/70",
+					)}
+				>
+					{languageLine}
+				</p>
 				<p
 					className={cn(
 						"truncate font-mono text-[11px]",

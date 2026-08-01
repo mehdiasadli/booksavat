@@ -1,0 +1,14 @@
+---
+description: Keep app/sitemap.ts in sync when adding public pages
+alwaysApply: true
+---
+
+# Sitemap updates
+
+Whenever you add a **public, indexable** page under `app/`:
+
+1. Update `app/sitemap.ts` in the same change (or the same PR).
+2. Add **static** routes to `staticRoutes` with a sensible `changeFrequency` and `priority`.
+3. For **dynamic** routes backed by our DB, add a query + mapped entries (see user profiles).
+4. Do **not** put auth-only pages (`/login`, etc.) or `noIndex` pages in the sitemap.
+5. Do **not** invent entries for third-party catalogs we do not own (e.g. every Open Library work/edition). Index those via on-demand metadata when users visit; only list routes we can enumerate from our data or a fixed allowlist.
