@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.2.0...booksavat-v0.2.1) (2026-08-01)
+
+
+### Bug Fixes
+
+* add www to trusted origins ([#14](https://github.com/mehdiasadli/booksavat/issues/14)) ([b57e460](https://github.com/mehdiasadli/booksavat/commit/b57e46078ce83c856cb248a7862e20f6c8226215))
+
 ## [0.2.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.1.0...booksavat-v0.2.0) (2026-07-31)
 
 
