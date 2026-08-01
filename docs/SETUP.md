@@ -45,7 +45,7 @@ docker run --name booksavat-db -e POSTGRES_PASSWORD=postgres \
 2. Create an OAuth 2.0 Client ID of type *Web application*.
 3. Add an authorised redirect URI of `http://localhost:3456/api/auth/callback/google`.
    Each deployed origin needs its own entry, for example
-   `https://booksavat.vercel.app/api/auth/callback/google`.
+   `https://booksavat.com/api/auth/callback/google`.
 4. Copy the client ID and secret into `.env`.
 
 Email and password sign-in is deliberately disabled; Google is the only provider.

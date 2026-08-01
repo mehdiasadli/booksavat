@@ -25,7 +25,7 @@ should work (Production, Preview, and Development if you use `vercel dev`):
 | --- | --- |
 | `DATABASE_URL` | Neon connection string |
 | `BETTER_AUTH_SECRET` | A distinct value per environment |
-| `BETTER_AUTH_URL` | The deployment's own origin, e.g. `https://booksavat.vercel.app` |
+| `BETTER_AUTH_URL` | The deployment's own origin, e.g. `https://booksavat.com` |
 | `GOOGLE_CLIENT_ID` | |
 | `GOOGLE_CLIENT_SECRET` | |
 
