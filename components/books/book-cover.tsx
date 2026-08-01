@@ -1,5 +1,8 @@
+"use client";
+
 import { BookOpen } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -21,6 +24,9 @@ interface BookCoverProps {
 }
 
 export function BookCover({ src, alt, size = "md", className, priority }: BookCoverProps) {
+	const [failedSrc, setFailedSrc] = useState<string | null>(null);
+	const showImage = Boolean(src) && failedSrc !== src;
+
 	return (
 		<div
 			className={cn(
@@ -29,7 +35,7 @@ export function BookCover({ src, alt, size = "md", className, priority }: BookCo
 				className,
 			)}
 		>
-			{src ? (
+			{showImage && src ? (
 				<Image
 					src={src}
 					alt={alt}
@@ -39,6 +45,7 @@ export function BookCover({ src, alt, size = "md", className, priority }: BookCo
 					}
 					className="object-cover"
 					priority={priority}
+					onError={() => setFailedSrc(src)}
 				/>
 			) : (
 				<div className="flex h-full w-full items-center justify-center text-muted-foreground">
