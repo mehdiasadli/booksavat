@@ -45,7 +45,9 @@ export const auth = betterAuth({
 			username: {
 				type: "string",
 				unique: true,
-				required: true,
+				// Not required at parse time: Google OAuth never sends a username.
+				// `databaseHooks.user.create.before` always derives one before insert.
+				required: false,
 				input: true,
 				returned: true,
 			},
@@ -68,7 +70,7 @@ export const auth = betterAuth({
 					const username = await resolveUsernameForCreate(user);
 
 					if (!username) {
-						return;
+						throw new Error("Unable to derive a username for the new user");
 					}
 
 					return { data: { ...user, username } };
