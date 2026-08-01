@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.3.0...booksavat-v0.4.0) (2026-08-01)
+
+
+### Features
+
+* add system and custom shelves, shelf visibility, ordered or unordered shelves ([#20](https://github.com/mehdiasadli/booksavat/issues/20)) ([e02562f](https://github.com/mehdiasadli/booksavat/commit/e02562f1a877cb3b72b75b78b468952c10951dab))
+
 ## [0.3.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.2.1...booksavat-v0.3.0) (2026-08-01)
 
 
