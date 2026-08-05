@@ -11,10 +11,11 @@ import type { User } from "@/server/contracts";
 
 interface UserProfileProps {
 	user: User;
+	isOwner?: boolean;
 	className?: string;
 }
 
-export function UserProfile({ user, className }: UserProfileProps) {
+export function UserProfile({ user, isOwner = false, className }: UserProfileProps) {
 	const jsonLd = buildUserProfileJsonLd(user);
 
 	return (
@@ -77,11 +78,21 @@ export function UserProfile({ user, className }: UserProfileProps) {
 								</p>
 							</div>
 						</div>
-						<Button
-							size="sm"
-							nativeButton={false}
-							render={<Link href={`/users/${user.username}/shelves`}>View shelves</Link>}
-						/>
+						<div className="flex flex-wrap gap-2">
+							<Button
+								size="sm"
+								nativeButton={false}
+								render={<Link href={`/users/${user.username}/shelves`}>View shelves</Link>}
+							/>
+							{isOwner ? (
+								<Button
+									size="sm"
+									variant="outline"
+									nativeButton={false}
+									render={<Link href={`/users/${user.username}/diary`}>Diary</Link>}
+								/>
+							) : null}
+						</div>
 					</div>
 				</section>
 			</article>
