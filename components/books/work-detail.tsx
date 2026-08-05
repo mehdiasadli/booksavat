@@ -2,6 +2,7 @@ import { ExternalLink } from "lucide-react";
 
 import { BookCover } from "@/components/books/book-cover";
 import { WorkEditions } from "@/components/books/work-editions";
+import { WorkStatusPanel } from "@/components/reading-logs/work-status-panel";
 import { AddToShelf } from "@/components/shelves/add-to-shelf";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,8 @@ export function WorkDetail({ work, editions, editionTotal, editionNextOffset }: 
 							}
 						/>
 					</div>
+
+					<WorkStatusPanel workId={work.workId} />
 				</div>
 			</div>
 

@@ -11,16 +11,11 @@ import {
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
 	DropdownMenuGroup,
-	DropdownMenuItem,
 	DropdownMenuLabel,
-	DropdownMenuRadioGroup,
-	DropdownMenuRadioItem,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 import { client, orpc } from "@/lib/orpc";
-import type { ShelfSystemKeyDto } from "@/server/contracts/shelf.contract";
 
 interface AddToShelfProps {
 	workId: string;
@@ -52,18 +47,10 @@ export function AddToShelf({ workId }: AddToShelfProps) {
 		[membershipQuery.data],
 	);
 
-	const systemShelves = useMemo(
-		() => shelvesQuery.data?.shelves.filter((shelf) => shelf.isSystem) ?? [],
-		[shelvesQuery.data],
-	);
-
 	const customShelves = useMemo(
 		() => shelvesQuery.data?.shelves.filter((shelf) => !shelf.isSystem) ?? [],
 		[shelvesQuery.data],
 	);
-
-	const activeSystemKey =
-		membershipQuery.data?.memberships.find((item) => item.isSystem)?.systemKey ?? "";
 
 	async function invalidate() {
 		await Promise.all([
@@ -133,76 +120,34 @@ export function AddToShelf({ workId }: AddToShelfProps) {
 			/>
 			<DropdownMenuContent align="start" className="min-w-56">
 				<DropdownMenuGroup>
-					<DropdownMenuLabel>Status</DropdownMenuLabel>
+					<DropdownMenuLabel>Custom shelves</DropdownMenuLabel>
 					{shelvesQuery.isLoading || membershipQuery.isLoading ? (
 						<p className="px-2 py-1.5 text-xs text-muted-foreground">Loading…</p>
+					) : customShelves.length === 0 ? (
+						<p className="px-2 py-1.5 text-xs text-muted-foreground">
+							No custom shelves yet. Create one from your shelves page.
+						</p>
 					) : (
-						<DropdownMenuRadioGroup
-							value={activeSystemKey ?? ""}
-							onValueChange={(value) => {
-								const shelf = systemShelves.find(
-									(item) => item.systemKey === (value as ShelfSystemKeyDto),
-								);
-								if (!shelf) {
-									return;
-								}
-
-								if (membershipIds.has(shelf.id)) {
-									remove.mutate(shelf.id);
-									return;
-								}
-
-								add.mutate(shelf.id);
-							}}
-						>
-							{systemShelves.map((shelf) => (
-								<DropdownMenuRadioItem key={shelf.id} value={shelf.systemKey ?? ""}>
+						customShelves.map((shelf) => {
+							const checked = membershipIds.has(shelf.id);
+							return (
+								<DropdownMenuCheckboxItem
+									key={shelf.id}
+									checked={checked}
+									onCheckedChange={(next) => {
+										if (next) {
+											add.mutate(shelf.id);
+										} else {
+											remove.mutate(shelf.id);
+										}
+									}}
+								>
 									{shelf.name}
-								</DropdownMenuRadioItem>
-							))}
-						</DropdownMenuRadioGroup>
+								</DropdownMenuCheckboxItem>
+							);
+						})
 					)}
-					{activeSystemKey ? (
-						<DropdownMenuItem
-							disabled={busy}
-							onClick={() => {
-								const shelf = systemShelves.find((item) => item.systemKey === activeSystemKey);
-								if (shelf) {
-									remove.mutate(shelf.id);
-								}
-							}}
-						>
-							Clear status
-						</DropdownMenuItem>
-					) : null}
 				</DropdownMenuGroup>
-
-				{customShelves.length > 0 ? (
-					<>
-						<DropdownMenuSeparator />
-						<DropdownMenuGroup>
-							<DropdownMenuLabel>Custom</DropdownMenuLabel>
-							{customShelves.map((shelf) => {
-								const checked = membershipIds.has(shelf.id);
-								return (
-									<DropdownMenuCheckboxItem
-										key={shelf.id}
-										checked={checked}
-										onCheckedChange={(next) => {
-											if (next) {
-												add.mutate(shelf.id);
-											} else {
-												remove.mutate(shelf.id);
-											}
-										}}
-									>
-										{shelf.name}
-									</DropdownMenuCheckboxItem>
-								);
-							})}
-						</DropdownMenuGroup>
-					</>
-				) : null}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
