@@ -33,7 +33,7 @@ interface StatusCommitDialogProps {
 	workId: string;
 	pending: PendingStatusChange | null;
 	onOpenChange: (open: boolean) => void;
-	onCommitted?: () => void;
+	onCommitted?: (result: { systemKey: LoggableSystemKey }) => void;
 }
 
 export function isLoggableStatusKey(key: string | null | undefined): key is LoggableSystemKey {
@@ -130,12 +130,13 @@ export function StatusCommitDialog({
 			});
 		},
 		onSuccess: async () => {
-			toast.success(
-				`Marked as ${pending ? READING_LOG_STATUS_LABEL[pending.systemKey] : "updated"}`,
-			);
+			const systemKey = pending?.systemKey;
+			toast.success(`Marked as ${systemKey ? READING_LOG_STATUS_LABEL[systemKey] : "updated"}`);
 			onOpenChange(false);
 			await invalidate();
-			onCommitted?.();
+			if (systemKey) {
+				onCommitted?.({ systemKey });
+			}
 		},
 		onError: (error) => {
 			toast.error(error instanceof Error ? error.message : "Could not save status");

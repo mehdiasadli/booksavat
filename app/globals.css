@@ -131,3 +131,12 @@
 		@apply font-serif;
 	}
 }
+
+/* TipTap placeholder (ProseMirror), kept out of React trees. */
+.rich-text-editor p.is-editor-empty:first-child::before {
+	color: var(--muted-foreground);
+	content: attr(data-placeholder);
+	float: left;
+	height: 0;
+	pointer-events: none;
+}

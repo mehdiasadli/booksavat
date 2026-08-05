@@ -5,6 +5,7 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { FeedbackDialog } from "@/components/feedback/feedback-dialog";
 import {
 	type PendingStatusChange,
 	StatusCommitDialog,
@@ -42,6 +43,7 @@ export function WorkStatusPanel({ workId }: WorkStatusPanelProps) {
 	const enabled = Boolean(session?.user);
 	const [pendingStatus, setPendingStatus] = useState<PendingStatusChange | null>(null);
 	const [diaryOpen, setDiaryOpen] = useState(false);
+	const [feedbackOpen, setFeedbackOpen] = useState(false);
 
 	const shelvesQuery = useQuery({
 		...orpc.shelf.listByUsername.queryOptions({
@@ -97,6 +99,8 @@ export function WorkStatusPanel({ workId }: WorkStatusPanelProps) {
 
 	const history = summarizeReadingHistory(historyQuery.data?.items ?? []);
 	const canReread = history.hasNonRereadFinished && activeSystemKey !== "reading";
+	const hasCompletedAttempt =
+		historyQuery.data?.items.some((item) => item.status === "completed") ?? false;
 
 	async function invalidate() {
 		await Promise.all([
@@ -325,6 +329,11 @@ export function WorkStatusPanel({ workId }: WorkStatusPanelProps) {
 								Re-read
 							</Button>
 						) : null}
+						{hasCompletedAttempt ? (
+							<Button size="sm" variant="secondary" onClick={() => setFeedbackOpen(true)}>
+								Rate & review
+							</Button>
+						) : null}
 						<Button size="sm" variant="outline" onClick={() => setDiaryOpen(true)}>
 							Edit diary
 						</Button>
@@ -332,6 +341,12 @@ export function WorkStatusPanel({ workId }: WorkStatusPanelProps) {
 							Clear
 						</Button>
 					</>
+				) : null}
+
+				{hasCompletedAttempt && activeSystemKey !== "completed" && activeSystemKey !== "dnf" ? (
+					<Button size="sm" variant="secondary" onClick={() => setFeedbackOpen(true)}>
+						Rate & review
+					</Button>
 				) : null}
 			</div>
 
@@ -343,12 +358,16 @@ export function WorkStatusPanel({ workId }: WorkStatusPanelProps) {
 						setPendingStatus(null);
 					}
 				}}
-				onCommitted={() => {
+				onCommitted={({ systemKey }) => {
 					void invalidate();
+					if (systemKey === "completed") {
+						setFeedbackOpen(true);
+					}
 				}}
 			/>
 
 			<WorkDiaryDialog workId={workId} open={diaryOpen} onOpenChange={setDiaryOpen} />
+			<FeedbackDialog workId={workId} open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 		</div>
 	);
 }
