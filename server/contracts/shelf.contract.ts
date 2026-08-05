@@ -50,6 +50,7 @@ export const listShelvesByUsernameContract = base
 		z.object({
 			ownerUsername: z.string(),
 			shelves: z.array(shelfSummarySchema),
+			locked: z.boolean(),
 		}),
 	);
 

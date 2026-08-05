@@ -6,6 +6,7 @@ import type { Database } from "@/db";
 import { readingLog, shelf, user } from "@/db/schema";
 import { coverUrlFromCoverId } from "@/lib/books/covers";
 import { toWorkId } from "@/lib/books/ids";
+import { canViewerSeeUserContent } from "@/lib/follows/service.server";
 import type { ReadingLogStatus } from "@/lib/reading-logs/constants";
 import { summarizeReadingHistory } from "@/lib/reading-logs/history";
 import { validateReadingLogInput } from "@/lib/reading-logs/validation";
@@ -59,7 +60,7 @@ function toDto(
 
 async function requireUserByUsername(db: Database, username: string) {
 	const [row] = await db
-		.select({ id: user.id, username: user.username })
+		.select({ id: user.id, username: user.username, isPrivate: user.isPrivate })
 		.from(user)
 		.where(eq(user.username, username))
 		.limit(1);
@@ -77,15 +78,22 @@ export async function listReadingLogsByUsername(
 	items: ReadingLogDto[];
 	total: number;
 	nextOffset: number | null;
+	locked: boolean;
 } | null> {
 	const owner = await requireUserByUsername(db, username);
 	if (!owner) {
 		return null;
 	}
 
-	// Owner-only diary for now.
-	if (!viewerUserId || viewerUserId !== owner.id) {
-		return null;
+	const canView = await canViewerSeeUserContent(db, owner, viewerUserId);
+	if (!canView) {
+		return {
+			ownerUsername: owner.username,
+			items: [],
+			total: 0,
+			nextOffset: null,
+			locked: true,
+		};
 	}
 
 	const rows = await db
@@ -108,6 +116,7 @@ export async function listReadingLogsByUsername(
 		items,
 		total,
 		nextOffset: consumed < total ? consumed : null,
+		locked: false,
 	};
 }
 
