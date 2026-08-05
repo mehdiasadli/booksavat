@@ -19,6 +19,7 @@ export const userSchema = z.object({
 	image: z.url().nullable(),
 	role: userRoleSchema,
 	createdAt: z.date(),
+	isPrivate: z.boolean(),
 });
 
 export type User = z.infer<typeof userSchema>;

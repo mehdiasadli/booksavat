@@ -6,6 +6,7 @@ import type { Database } from "@/db";
 import { shelf, shelfItem, user } from "@/db/schema";
 import { coverUrlFromCoverId } from "@/lib/books/covers";
 import { normalizeWorkKey, toWorkId } from "@/lib/books/ids";
+import { canViewerSeeUserContent, hasAcceptedFollow } from "@/lib/follows/service.server";
 import { isLoggableSystemKey } from "@/lib/reading-logs/constants";
 import {
 	RESERVED_SHELF_SLUGS,
@@ -47,7 +48,7 @@ export type ShelfItemPreview = {
 
 async function requireUserByUsername(db: Database, username: string) {
 	const [row] = await db
-		.select({ id: user.id, username: user.username })
+		.select({ id: user.id, username: user.username, isPrivate: user.isPrivate })
 		.from(user)
 		.where(eq(user.username, username))
 		.limit(1);
@@ -57,6 +58,17 @@ async function requireUserByUsername(db: Database, username: string) {
 	}
 
 	return row;
+}
+
+async function viewerFollowsOwner(
+	db: Database,
+	ownerUserId: string,
+	viewerUserId: string | null | undefined,
+): Promise<boolean> {
+	if (!viewerUserId || viewerUserId === ownerUserId) {
+		return false;
+	}
+	return hasAcceptedFollow(db, viewerUserId, ownerUserId);
 }
 
 async function getOwnedShelf(db: Database, shelfId: string, ownerUserId: string) {
@@ -125,13 +137,20 @@ export async function listShelvesByUsername(
 	db: Database,
 	username: string,
 	viewerUserId?: string | null,
-): Promise<{ ownerUsername: string; shelves: ShelfSummary[] } | null> {
+): Promise<{ ownerUsername: string; shelves: ShelfSummary[]; locked: boolean } | null> {
 	const owner = await requireUserByUsername(db, username);
 	if (!owner) {
 		return null;
 	}
 
+	const canViewContent = await canViewerSeeUserContent(db, owner, viewerUserId);
+	if (!canViewContent) {
+		return { ownerUsername: owner.username, shelves: [], locked: true };
+	}
+
 	await ensureSystemShelves(db, owner.id);
+
+	const follows = await viewerFollowsOwner(db, owner.id, viewerUserId);
 
 	const rows = await db
 		.select()
@@ -144,12 +163,13 @@ export async function listShelvesByUsername(
 			visibility: row.visibility,
 			ownerUserId: owner.id,
 			viewerUserId,
+			viewerFollowsOwner: follows,
 		}),
 	);
 
 	const shelves = await Promise.all(visible.map((row) => toShelfSummary(db, row)));
 
-	return { ownerUsername: owner.username, shelves };
+	return { ownerUsername: owner.username, shelves, locked: false };
 }
 
 export async function getShelfByUsernameAndSlug(
@@ -170,6 +190,11 @@ export async function getShelfByUsernameAndSlug(
 		return null;
 	}
 
+	const canViewContent = await canViewerSeeUserContent(db, owner, viewerUserId);
+	if (!canViewContent) {
+		return null;
+	}
+
 	await ensureSystemShelves(db, owner.id);
 
 	const [row] = await db
@@ -182,11 +207,14 @@ export async function getShelfByUsernameAndSlug(
 		return null;
 	}
 
+	const follows = await viewerFollowsOwner(db, owner.id, viewerUserId);
+
 	if (
 		!canViewShelf({
 			visibility: row.visibility,
 			ownerUserId: owner.id,
 			viewerUserId,
+			viewerFollowsOwner: follows,
 		})
 	) {
 		return null;

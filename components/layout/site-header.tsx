@@ -115,6 +115,7 @@ export function SiteHeader() {
 								<DropdownMenuItem
 									render={<Link href={`/users/${session.user.username}/diary`}>Diary</Link>}
 								/>
+								<DropdownMenuItem render={<Link href="/people">People</Link>} />
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									disabled={isLoggingOut}
@@ -214,6 +215,15 @@ export function SiteHeader() {
 												onClick={() => setMobileOpen(false)}
 											>
 												Diary
+											</Link>
+										}
+									/>
+									<Button
+										variant="outline"
+										nativeButton={false}
+										render={
+											<Link href="/people" onClick={() => setMobileOpen(false)}>
+												People
 											</Link>
 										}
 									/>

@@ -14,6 +14,7 @@ const publicColumns = {
 	image: userTable.image,
 	role: userTable.role,
 	createdAt: userTable.createdAt,
+	isPrivate: userTable.isPrivate,
 };
 
 /**
@@ -35,6 +36,7 @@ export function toPublicUser(sessionUser: ViewerUser): User {
 		image: sessionUser.image ?? null,
 		role: userRoleSchema.catch("user").parse(sessionUser.role),
 		createdAt: sessionUser.createdAt,
+		isPrivate: Boolean(sessionUser.isPrivate),
 	};
 }
 

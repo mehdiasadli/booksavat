@@ -26,7 +26,7 @@ export const listByUsernameContract = base
 		method: "GET",
 		path: "/reading-log/by-username/{username}",
 		tags: ["readingLog"],
-		summary: "List reading logs for a user (owner-only diary)",
+		summary: "List reading logs for a user (visibility-gated diary)",
 	})
 	.input(
 		paginationInputSchema.extend({
@@ -39,6 +39,7 @@ export const listByUsernameContract = base
 			items: z.array(readingLogSchema),
 			total: z.number().int().min(0),
 			nextOffset: z.number().int().min(0).nullable(),
+			locked: z.boolean(),
 		}),
 	);
 

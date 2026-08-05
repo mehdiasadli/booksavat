@@ -2,11 +2,12 @@ import { defineRelations } from "drizzle-orm";
 
 import { account, session, user, verification } from "@/db/schemas/auth.schema";
 import { feedback } from "@/db/schemas/feedback.schema";
+import { follow } from "@/db/schemas/follow.schema";
 import { readingLog } from "@/db/schemas/reading-log.schema";
 import { shelf, shelfItem } from "@/db/schemas/shelf.schema";
 
 export const appRelations = defineRelations(
-	{ user, session, account, verification, shelf, shelfItem, readingLog, feedback },
+	{ user, session, account, verification, shelf, shelfItem, readingLog, feedback, follow },
 	(r) => ({
 		user: {
 			sessions: r.many.session(),
@@ -14,6 +15,14 @@ export const appRelations = defineRelations(
 			shelves: r.many.shelf(),
 			readingLogs: r.many.readingLog(),
 			feedbacks: r.many.feedback(),
+			following: r.many.follow({
+				from: r.user.id,
+				to: r.follow.followerId,
+			}),
+			followers: r.many.follow({
+				from: r.user.id,
+				to: r.follow.followingId,
+			}),
 		},
 		session: {
 			user: r.one.user({
@@ -54,6 +63,18 @@ export const appRelations = defineRelations(
 		feedback: {
 			user: r.one.user({
 				from: r.feedback.userId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		follow: {
+			follower: r.one.user({
+				from: r.follow.followerId,
+				to: r.user.id,
+				optional: false,
+			}),
+			following: r.one.user({
+				from: r.follow.followingId,
 				to: r.user.id,
 				optional: false,
 			}),

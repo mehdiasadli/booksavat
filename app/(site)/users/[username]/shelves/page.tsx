@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { PrivateLocked } from "@/components/follows/private-locked";
 import { ShelvesList } from "@/components/shelves/shelves-list";
 import { getCurrentSession } from "@/lib/auth-functions";
 import { APP_NAME } from "@/lib/constants";
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: ShelvesPageProps): Promise<Me
 		title: `${data.ownerUsername}’s shelves`,
 		description: `Browse shelves from @${data.ownerUsername} on ${APP_NAME}.`,
 		path: `/users/${data.ownerUsername}/shelves`,
+		noIndex: data.locked,
 	});
 }
 
@@ -35,6 +37,14 @@ export default async function ShelvesPage({ params }: ShelvesPageProps) {
 
 	if (!data) {
 		notFound();
+	}
+
+	if (data.locked) {
+		return (
+			<div className="mx-auto max-w-2xl px-6 py-12">
+				<PrivateLocked username={data.ownerUsername} />
+			</div>
+		);
 	}
 
 	const session = await getCurrentSession();

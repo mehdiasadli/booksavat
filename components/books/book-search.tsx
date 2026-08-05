@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Search, X } from "lucide-react";
+import { Loader2, Lock, Search, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { BookSearchItem } from "@/components/books/book-search-item";
@@ -9,10 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { orpc } from "@/lib/orpc";
 import { cn } from "@/lib/utils";
 
-const SEARCH_LIMIT = 8;
+const SEARCH_LIMIT = 6;
 const DEBOUNCE_MS = 300;
 
 interface BookSearchProps {
@@ -58,7 +60,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 
 	const enabled = debouncedQuery.length >= 2;
 
-	const { data, isFetching, isError, error } = useQuery({
+	const booksQuery = useQuery({
 		...orpc.book.search.queryOptions({
 			input: { q: debouncedQuery, limit: SEARCH_LIMIT },
 		}),
@@ -66,7 +68,26 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 		staleTime: 60_000,
 	});
 
+	const usersQuery = useQuery({
+		...orpc.follow.searchUsers.queryOptions({
+			input: { q: debouncedQuery, limit: 5, offset: 0 },
+		}),
+		enabled: enabled && open,
+		staleTime: 60_000,
+	});
+
 	const showPanel = open && query.length > 0;
+	const isFetching = booksQuery.isFetching || usersQuery.isFetching;
+	const isError = booksQuery.isError || usersQuery.isError;
+	const books = booksQuery.data?.items ?? [];
+	const users = usersQuery.data?.items ?? [];
+	const empty = enabled && !isFetching && books.length === 0 && users.length === 0;
+
+	function clearAndClose() {
+		setOpen(false);
+		setQuery("");
+		setDebouncedQuery("");
+	}
 
 	return (
 		<div ref={rootRef} className={cn("relative w-full", className)}>
@@ -81,7 +102,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 					setOpen(true);
 				}}
 				onFocus={() => setOpen(true)}
-				placeholder={compact ? "Search books…" : "Search books by title, author, ISBN…"}
+				placeholder={compact ? "Search…" : "Search books and people…"}
 				className="h-9 pr-9 pl-8"
 				role="combobox"
 				aria-expanded={showPanel}
@@ -109,33 +130,30 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 				<div
 					id={listId}
 					role="listbox"
-					aria-label="Book search results"
+					aria-label="Search results"
 					className="absolute top-[calc(100%+0.35rem)] right-0 left-0 z-50 overflow-hidden rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10"
 				>
 					{!enabled ? (
 						<p className="px-3 py-4 text-sm text-muted-foreground">
 							Type at least 2 characters to search.
 						</p>
-					) : isFetching && !data ? (
+					) : isFetching && !booksQuery.data && !usersQuery.data ? (
 						<div className="space-y-2 p-2">
-							{["a", "b", "c", "d"].map((key) => (
+							{["a", "b", "c"].map((key) => (
 								<div key={key} className="flex gap-3 px-2 py-2">
-									<Skeleton className="h-16 w-11 shrink-0 rounded-sm" />
+									<Skeleton className="h-10 w-10 shrink-0 rounded-sm" />
 									<div className="flex-1 space-y-2">
 										<Skeleton className="h-4 w-3/4" />
 										<Skeleton className="h-3 w-1/2" />
-										<Skeleton className="h-3 w-full" />
 									</div>
 								</div>
 							))}
 						</div>
 					) : isError ? (
-						<p className="px-3 py-4 text-sm text-destructive">
-							{error instanceof Error ? error.message : "Search failed. Try again."}
-						</p>
-					) : data?.items.length === 0 ? (
+						<p className="px-3 py-4 text-sm text-destructive">Search failed. Try again.</p>
+					) : empty ? (
 						<p className="px-3 py-4 text-sm text-muted-foreground">
-							No books found for “{debouncedQuery}”.
+							No books or people found for “{debouncedQuery}”.
 						</p>
 					) : (
 						<ScrollArea className="max-h-96">
@@ -146,20 +164,45 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 										Updating results…
 									</div>
 								) : null}
-								{data?.items.map((book) => (
-									<BookSearchItem
-										key={book.workId}
-										book={book}
-										onSelect={() => {
-											setOpen(false);
-											setQuery("");
-											setDebouncedQuery("");
-										}}
-									/>
+
+								{users.length > 0 ? (
+									<div className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+										People
+									</div>
+								) : null}
+								{users.map((person) => (
+									<Link
+										key={person.id}
+										href={`/users/${person.username}`}
+										onClick={clearAndClose}
+										className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/70"
+									>
+										<UserAvatar name={person.name} image={person.image} size="md" />
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-medium leading-snug">{person.name}</p>
+											<p className="truncate text-xs text-muted-foreground">@{person.username}</p>
+										</div>
+										{person.isPrivate ? (
+											<Lock
+												className="size-3.5 shrink-0 text-muted-foreground"
+												aria-label="Private"
+											/>
+										) : null}
+									</Link>
 								))}
-								{data && data.total > data.items.length ? (
+
+								{books.length > 0 ? (
+									<div className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+										Books
+									</div>
+								) : null}
+								{books.map((book) => (
+									<BookSearchItem key={book.workId} book={book} onSelect={clearAndClose} />
+								))}
+
+								{booksQuery.data && booksQuery.data.total > books.length ? (
 									<p className="px-3 py-2 text-xs text-muted-foreground">
-										Showing {data.items.length} of {data.total.toLocaleString()} results
+										Showing {books.length} of {booksQuery.data.total.toLocaleString()} books
 									</p>
 								) : null}
 							</div>

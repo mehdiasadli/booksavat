@@ -1,0 +1,376 @@
+import { faker } from "@faker-js/faker";
+import { and, eq, like } from "drizzle-orm";
+
+import { db } from "@/db";
+import { feedback, follow, readingLog, shelf, shelfItem, user } from "@/db/schema";
+import { SYSTEM_SHELF_DEFINITIONS, type SystemShelfKey } from "@/lib/shelves/constants";
+
+const SEED_EMAIL_DOMAIN = "booksavat.test";
+const FAKER_SEED = 20_260_805;
+
+/** Stable Open Library work IDs so feed/shelf links resolve in dev. */
+const SEED_WORKS = [
+	"OL45804W", // Pride and Prejudice
+	"OL27448W", // The Hobbit
+	"OL82563W", // 1984
+	"OL1168007W", // The Great Gatsby
+	"OL151343W", // To Kill a Mockingbird
+] as const;
+
+type SeedUserKey = "alice" | "bob" | "cara" | "dan" | "erin" | "frank" | "grace" | "mod";
+
+type SeedUserSpec = {
+	key: SeedUserKey;
+	username: string;
+	isPrivate: boolean;
+	role: "user" | "moderator" | "admin";
+	/** Short note logged at seed time. */
+	label: string;
+};
+
+/**
+ * Deterministic personas covering privacy + follow states for local testing.
+ * Usernames stay stable across restarts so you can deep-link to them.
+ */
+const SEED_USER_SPECS: readonly SeedUserSpec[] = [
+	{
+		key: "alice",
+		username: "alice_public",
+		isPrivate: false,
+		role: "user",
+		label: "public reader with activity",
+	},
+	{
+		key: "bob",
+		username: "bob_private",
+		isPrivate: true,
+		role: "user",
+		label: "private account (request to follow)",
+	},
+	{
+		key: "cara",
+		username: "cara_follows",
+		isPrivate: false,
+		role: "user",
+		label: "follows alice (accepted)",
+	},
+	{
+		key: "dan",
+		username: "dan_pending",
+		isPrivate: false,
+		role: "user",
+		label: "has outgoing request to bob",
+	},
+	{
+		key: "erin",
+		username: "erin_mutual",
+		isPrivate: false,
+		role: "user",
+		label: "mutual follow with alice",
+	},
+	{
+		key: "frank",
+		username: "frank_quiet",
+		isPrivate: true,
+		role: "user",
+		label: "private, no follows yet",
+	},
+	{
+		key: "grace",
+		username: "grace_reviews",
+		isPrivate: false,
+		role: "user",
+		label: "public with ratings/reviews",
+	},
+	{
+		key: "mod",
+		username: "seed_mod",
+		isPrivate: false,
+		role: "moderator",
+		label: "moderator role",
+	},
+] as const;
+
+let seedPromise: Promise<void> | null = null;
+
+async function alreadySeeded(): Promise<boolean> {
+	const [row] = await db
+		.select({ id: user.id })
+		.from(user)
+		.where(like(user.email, `%@${SEED_EMAIL_DOMAIN}`))
+		.limit(1);
+
+	return Boolean(row);
+}
+
+async function ensureSeedShelves(userId: string, now: Date) {
+	const existing = await db
+		.select({ systemKey: shelf.systemKey })
+		.from(shelf)
+		.where(eq(shelf.userId, userId));
+
+	const have = new Set(existing.map((row) => row.systemKey).filter(Boolean));
+	const missing = SYSTEM_SHELF_DEFINITIONS.filter((definition) => !have.has(definition.systemKey));
+
+	if (missing.length === 0) {
+		return;
+	}
+
+	await db.insert(shelf).values(
+		missing.map((definition) => ({
+			userId,
+			name: definition.name,
+			slug: definition.slug,
+			visibility: "private" as const,
+			isSystem: true,
+			systemKey: definition.systemKey,
+			isOrdered: false,
+			position: definition.position,
+			createdAt: now,
+			updatedAt: now,
+		})),
+	);
+}
+
+async function createSeedUser(spec: SeedUserSpec, now: Date) {
+	const firstName = faker.person.firstName();
+	const lastName = faker.person.lastName();
+	const name = `${firstName} ${lastName}`;
+	const id = crypto.randomUUID();
+
+	await db.insert(user).values({
+		id,
+		name,
+		email: `${spec.username}@${SEED_EMAIL_DOMAIN}`,
+		emailVerified: true,
+		image: faker.image.personPortrait({ size: 128 }),
+		username: spec.username,
+		isPrivate: spec.isPrivate,
+		role: spec.role,
+		createdAt: now,
+		updatedAt: now,
+	});
+
+	await ensureSeedShelves(id, now);
+
+	return { ...spec, id, name };
+}
+
+async function seedFollows(ids: Record<SeedUserKey, string>, now: Date) {
+	const edges: Array<{
+		followerId: string;
+		followingId: string;
+		status: "pending" | "accepted";
+	}> = [
+		{ followerId: ids.cara, followingId: ids.alice, status: "accepted" },
+		{ followerId: ids.alice, followingId: ids.erin, status: "accepted" },
+		{ followerId: ids.erin, followingId: ids.alice, status: "accepted" },
+		{ followerId: ids.dan, followingId: ids.bob, status: "pending" },
+		{ followerId: ids.grace, followingId: ids.alice, status: "accepted" },
+		{ followerId: ids.grace, followingId: ids.cara, status: "accepted" },
+		{ followerId: ids.alice, followingId: ids.bob, status: "pending" },
+		{ followerId: ids.cara, followingId: ids.grace, status: "accepted" },
+	];
+
+	await db.insert(follow).values(
+		edges.map((edge) => ({
+			...edge,
+			createdAt: now,
+			updatedAt: now,
+		})),
+	);
+}
+
+async function shelfIdFor(userId: string, systemKey: SystemShelfKey): Promise<string | null> {
+	const [row] = await db
+		.select({ id: shelf.id })
+		.from(shelf)
+		.where(and(eq(shelf.userId, userId), eq(shelf.systemKey, systemKey)))
+		.limit(1);
+
+	return row?.id ?? null;
+}
+
+async function putOnShelf(shelfId: string, workId: string, position: number, now: Date) {
+	await db.insert(shelfItem).values({
+		shelfId,
+		workId,
+		position,
+		createdAt: now,
+		updatedAt: now,
+	});
+}
+
+async function seedActivity(ids: Record<SeedUserKey, string>, now: Date) {
+	const aliceCompleted = await shelfIdFor(ids.alice, "completed");
+	const aliceReading = await shelfIdFor(ids.alice, "reading");
+	const graceCompleted = await shelfIdFor(ids.grace, "completed");
+
+	if (aliceCompleted) await putOnShelf(aliceCompleted, SEED_WORKS[0], 0, now);
+	if (aliceReading) await putOnShelf(aliceReading, SEED_WORKS[1], 0, now);
+	if (graceCompleted) {
+		await putOnShelf(graceCompleted, SEED_WORKS[2], 0, now);
+		await putOnShelf(graceCompleted, SEED_WORKS[3], 1, now);
+	}
+
+	await db.insert(readingLog).values([
+		{
+			userId: ids.alice,
+			workId: SEED_WORKS[0],
+			status: "completed",
+			startedAt: faker.date.past({ years: 1 }),
+			finishedAt: faker.date.recent({ days: 40 }),
+			isReread: false,
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			userId: ids.alice,
+			workId: SEED_WORKS[1],
+			status: "reading",
+			startedAt: faker.date.recent({ days: 10 }),
+			finishedAt: null,
+			isReread: false,
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			userId: ids.grace,
+			workId: SEED_WORKS[2],
+			status: "completed",
+			startedAt: faker.date.past({ years: 1 }),
+			finishedAt: faker.date.recent({ days: 20 }),
+			isReread: false,
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			userId: ids.grace,
+			workId: SEED_WORKS[3],
+			status: "completed",
+			startedAt: faker.date.past({ years: 1 }),
+			finishedAt: faker.date.recent({ days: 12 }),
+			isReread: false,
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			userId: ids.cara,
+			workId: SEED_WORKS[4],
+			status: "reading",
+			startedAt: faker.date.recent({ days: 14 }),
+			finishedAt: null,
+			isReread: false,
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			userId: ids.erin,
+			workId: SEED_WORKS[1],
+			status: "completed",
+			startedAt: faker.date.past({ years: 1 }),
+			finishedAt: faker.date.recent({ days: 30 }),
+			isReread: false,
+			createdAt: now,
+			updatedAt: now,
+		},
+	]);
+
+	await db.insert(feedback).values([
+		{
+			userId: ids.grace,
+			workId: SEED_WORKS[2],
+			rating: "4.5",
+			review: {
+				type: "doc",
+				content: [
+					{
+						type: "paragraph",
+						content: [{ type: "text", text: faker.lorem.sentences(2) }],
+					},
+				],
+			},
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			userId: ids.grace,
+			workId: SEED_WORKS[3],
+			rating: "3.5",
+			review: null,
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			userId: ids.alice,
+			workId: SEED_WORKS[0],
+			rating: "5.0",
+			review: {
+				type: "doc",
+				content: [
+					{
+						type: "paragraph",
+						content: [{ type: "text", text: "A perennial favorite." }],
+					},
+				],
+			},
+			createdAt: now,
+			updatedAt: now,
+		},
+	]);
+}
+
+async function runSeed(): Promise<void> {
+	if (process.env.NODE_ENV !== "development") {
+		return;
+	}
+
+	if (await alreadySeeded()) {
+		console.info(`[seed] skipped — @${SEED_EMAIL_DOMAIN} users already exist`);
+		return;
+	}
+
+	faker.seed(FAKER_SEED);
+	const now = new Date();
+	console.info("[seed] creating development users…");
+
+	const created: Array<Awaited<ReturnType<typeof createSeedUser>>> = [];
+	for (const spec of SEED_USER_SPECS) {
+		created.push(await createSeedUser(spec, now));
+	}
+
+	const ids = Object.fromEntries(created.map((u) => [u.key, u.id])) as Record<SeedUserKey, string>;
+
+	await seedFollows(ids, now);
+	await seedActivity(ids, now);
+
+	console.info("[seed] ready — sign in with Google as yourself, then visit:");
+	for (const u of created) {
+		console.info(
+			`  /users/${u.username}  (${u.label}${u.isPrivate ? ", private" : ""}${u.role !== "user" ? `, ${u.role}` : ""})`,
+		);
+	}
+	console.info(
+		`  emails: <username>@${SEED_EMAIL_DOMAIN}  |  follow graph: cara→alice, alice↔erin, dan→bob(pending), alice→bob(pending)`,
+	);
+}
+
+/**
+ * Idempotent dev seed. Safe to call on every server boot; no-ops outside development
+ * and when seed users already exist.
+ */
+export function seedDevData(): Promise<void> {
+	if (process.env.NODE_ENV !== "development") {
+		return Promise.resolve();
+	}
+
+	if (!seedPromise) {
+		seedPromise = runSeed().catch((error) => {
+			seedPromise = null;
+			console.error("[seed] failed", error);
+			throw error;
+		});
+	}
+
+	return seedPromise;
+}

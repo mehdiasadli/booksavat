@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
 				protocol: "https",
 				hostname: "covers.openlibrary.org",
 			},
+			// Faker person portraits used by the development seed.
+			{
+				protocol: "https",
+				hostname: "cdn.jsdelivr.net",
+			},
 		],
 	},
 };
