@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { UserProfile } from "@/components/users/user-profile";
-import { getCurrentSession } from "@/lib/auth-functions";
-import { buildUserProfileMetadata, getPublicUserProfile } from "@/lib/users/profile.server";
+import { UserProfileView } from "@/components/users/user-profile";
+import {
+	buildUserProfileJsonLd,
+	buildUserProfileMetadata,
+	getPublicUserProfile,
+} from "@/lib/users/profile.server";
 
 interface UserPageProps {
 	params: Promise<{ username: string }>;
@@ -28,14 +31,22 @@ export async function generateMetadata({ params }: UserPageProps): Promise<Metad
 
 export default async function UserPage({ params }: UserPageProps) {
 	const { username } = await params;
-	const user = await getPublicUserProfile(username);
+	const profile = await getPublicUserProfile(username);
 
-	if (!user) {
+	if (!profile) {
 		notFound();
 	}
 
-	const session = await getCurrentSession();
-	const isOwner = session?.user?.username === user.username;
+	const jsonLd = buildUserProfileJsonLd(profile);
 
-	return <UserProfile user={user} isOwner={Boolean(isOwner)} />;
+	return (
+		<>
+			<script
+				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD requires a script tag.
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+			/>
+			<UserProfileView profile={profile} />
+		</>
+	);
 }
