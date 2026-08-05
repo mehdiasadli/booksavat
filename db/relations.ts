@@ -1,15 +1,17 @@
 import { defineRelations } from "drizzle-orm";
 
 import { account, session, user, verification } from "@/db/schemas/auth.schema";
+import { readingLog } from "@/db/schemas/reading-log.schema";
 import { shelf, shelfItem } from "@/db/schemas/shelf.schema";
 
 export const appRelations = defineRelations(
-	{ user, session, account, verification, shelf, shelfItem },
+	{ user, session, account, verification, shelf, shelfItem, readingLog },
 	(r) => ({
 		user: {
 			sessions: r.many.session(),
 			accounts: r.many.account(),
 			shelves: r.many.shelf(),
+			readingLogs: r.many.readingLog(),
 		},
 		session: {
 			user: r.one.user({
@@ -37,6 +39,13 @@ export const appRelations = defineRelations(
 			shelf: r.one.shelf({
 				from: r.shelfItem.shelfId,
 				to: r.shelf.id,
+				optional: false,
+			}),
+		},
+		readingLog: {
+			user: r.one.user({
+				from: r.readingLog.userId,
+				to: r.user.id,
 				optional: false,
 			}),
 		},
