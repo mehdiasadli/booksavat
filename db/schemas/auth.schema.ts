@@ -15,6 +15,8 @@ export const user = pgTable("user", {
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	image: text("image"),
 	role: userRoleEnum("role").default("user").notNull(),
+	/** Instagram-style: private accounts require an accepted follow to see content. */
+	isPrivate: boolean("is_private").default(false).notNull(),
 });
 
 export const session = pgTable(

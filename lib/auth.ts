@@ -52,6 +52,13 @@ export const auth = betterAuth({
 				input: true,
 				returned: true,
 			},
+			isPrivate: {
+				type: "boolean",
+				defaultValue: false,
+				required: true,
+				input: true,
+				returned: true,
+			},
 		},
 	},
 
