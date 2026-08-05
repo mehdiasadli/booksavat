@@ -22,6 +22,7 @@
 		"hooks": "@/hooks"
 	},
 	"registries": {
-		"@elements": "https://www.tryelements.dev/r/{name}.json"
+		"@elements": "https://www.tryelements.dev/r/{name}.json",
+		"@reui": "https://reui.io/r/{style}/{name}.json"
 	}
 }
