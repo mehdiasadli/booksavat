@@ -6,6 +6,7 @@ import type { Database } from "@/db";
 import { shelf, shelfItem, user } from "@/db/schema";
 import { coverUrlFromCoverId } from "@/lib/books/covers";
 import { normalizeWorkKey, toWorkId } from "@/lib/books/ids";
+import { isLoggableSystemKey } from "@/lib/reading-logs/constants";
 import {
 	RESERVED_SHELF_SLUGS,
 	type ShelfVisibility,
@@ -377,13 +378,16 @@ export async function addWorkToShelf(
 	ownerUserId: string,
 	shelfId: string,
 	rawWorkId: string,
+	options: { syncReadingLog?: boolean } = {},
 ): Promise<ShelfItemPreview | null> {
+	const { syncReadingLog = true } = options;
 	const target = await getOwnedShelf(db, shelfId, ownerUserId);
 	if (!target) {
 		return null;
 	}
 
 	const workId = toWorkId(rawWorkId);
+	let inserted = false;
 
 	await db.transaction(async (tx) => {
 		if (target.isSystem && target.systemKey) {
@@ -428,7 +432,17 @@ export async function addWorkToShelf(
 		});
 
 		await tx.update(shelf).set({ updatedAt: now }).where(eq(shelf.id, target.id));
+		inserted = true;
 	});
+
+	if (inserted && syncReadingLog && target.isSystem && isLoggableSystemKey(target.systemKey)) {
+		const { syncReadingLogForSystemShelfChange } = await import("@/lib/reading-logs/sync.server");
+		await syncReadingLogForSystemShelfChange(db, {
+			userId: ownerUserId,
+			workId,
+			systemKey: target.systemKey,
+		});
+	}
 
 	const [item] = await db
 		.select()
