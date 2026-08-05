@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.4.0...booksavat-v0.5.0) (2026-08-05)
+
+
+### Features
+
+* add feedback system where users can rate, and review their completed books ([#24](https://github.com/mehdiasadli/booksavat/issues/24)) ([2f1d8f8](https://github.com/mehdiasadli/booksavat/commit/2f1d8f80c08636f805411f125782c6cede5ce066))
+* implement follow system, and private/public users ([#25](https://github.com/mehdiasadli/booksavat/issues/25)) ([1f410f2](https://github.com/mehdiasadli/booksavat/commit/1f410f2ab4f7c196cf6e9acd2a983f11ea14d866))
+* Implement reading logs ([#22](https://github.com/mehdiasadli/booksavat/issues/22)) ([93575a3](https://github.com/mehdiasadli/booksavat/commit/93575a3bd4a48be875d9a8ecf88f931268272d88))
+
 ## [0.4.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.3.0...booksavat-v0.4.0) (2026-08-01)
 
 
