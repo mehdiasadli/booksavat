@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { ClubSubnav } from "@/components/clubs/club-subnav";
+import { SessionDiscussion } from "@/components/clubs/session-discussion";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -748,6 +749,12 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 					</ul>
 				</section>
 			) : null}
+
+			<SessionDiscussion
+				slug={club.slug}
+				sessionId={session.id}
+				enabled={session.status === "reviewing" || session.status === "completed"}
+			/>
 
 			<div className="flex flex-wrap gap-2">
 				{session.canJoin ? (
