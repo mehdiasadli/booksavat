@@ -13,9 +13,17 @@ export type ClubBooklistItemStatus = (typeof CLUB_BOOKLIST_ITEM_STATUSES)[number
 export const CLUB_SHORTLIST_MODES = ["manual", "random"] as const;
 export type ClubShortlistMode = (typeof CLUB_SHORTLIST_MODES)[number];
 
+export {
+	LIVE_SESSION_STATUSES,
+	type LiveSessionStatus,
+	READING_SESSION_STATUSES,
+	type ReadingSessionStatus,
+} from "@/lib/clubs/session-lifecycle";
+
 export const CLUB_NAME_MAX = 80;
 export const CLUB_DESCRIPTION_MAX = 2000;
 export const CLUB_SLUG_MAX = 48;
+export const CLUB_SESSION_TITLE_MAX = 120;
 export const CLUB_DEFAULT_SHORTLIST_SIZE = 10;
 export const CLUB_SHORTLIST_SIZE_MIN = 2;
 export const CLUB_SHORTLIST_SIZE_MAX = 30;

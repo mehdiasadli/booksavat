@@ -2,6 +2,7 @@ import { defineRelations } from "drizzle-orm";
 
 import { account, session, user, verification } from "@/db/schemas/auth.schema";
 import { club, clubBooklistItem, clubMembership } from "@/db/schemas/club.schema";
+import { readingSession, sessionParticipant } from "@/db/schemas/club-session.schema";
 import { feedback } from "@/db/schemas/feedback.schema";
 import { follow } from "@/db/schemas/follow.schema";
 import { readingLog } from "@/db/schemas/reading-log.schema";
@@ -21,6 +22,8 @@ export const appRelations = defineRelations(
 		club,
 		clubMembership,
 		clubBooklistItem,
+		readingSession,
+		sessionParticipant,
 	},
 	(r) => ({
 		user: {
@@ -39,6 +42,8 @@ export const appRelations = defineRelations(
 			}),
 			clubMemberships: r.many.clubMembership(),
 			clubBooklistItems: r.many.clubBooklistItem(),
+			createdReadingSessions: r.many.readingSession(),
+			sessionParticipations: r.many.sessionParticipant(),
 		},
 		session: {
 			user: r.one.user({
@@ -98,6 +103,7 @@ export const appRelations = defineRelations(
 		club: {
 			memberships: r.many.clubMembership(),
 			booklistItems: r.many.clubBooklistItem(),
+			readingSessions: r.many.readingSession(),
 		},
 		clubMembership: {
 			club: r.one.club({
@@ -119,6 +125,31 @@ export const appRelations = defineRelations(
 			}),
 			addedBy: r.one.user({
 				from: r.clubBooklistItem.addedByUserId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		readingSession: {
+			club: r.one.club({
+				from: r.readingSession.clubId,
+				to: r.club.id,
+				optional: false,
+			}),
+			createdBy: r.one.user({
+				from: r.readingSession.createdByUserId,
+				to: r.user.id,
+				optional: false,
+			}),
+			participants: r.many.sessionParticipant(),
+		},
+		sessionParticipant: {
+			session: r.one.readingSession({
+				from: r.sessionParticipant.sessionId,
+				to: r.readingSession.id,
+				optional: false,
+			}),
+			user: r.one.user({
+				from: r.sessionParticipant.userId,
 				to: r.user.id,
 				optional: false,
 			}),
