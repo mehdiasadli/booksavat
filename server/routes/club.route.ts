@@ -1,4 +1,13 @@
 import {
+	addOrProposeBooklistItem,
+	approveBooklistProposal,
+	listBooklist,
+	listBooklistProposals,
+	rejectBooklistProposal,
+	removeBooklistItem,
+	updateBooklistSettings,
+} from "@/lib/clubs/booklist.server";
+import {
 	acceptInvite,
 	acceptRequest,
 	cancelRequest,
@@ -268,6 +277,86 @@ export const transferAdminRoute = protectedProcedure.club.transferAdmin.handler(
 	},
 );
 
+export const updateBooklistSettingsRoute = protectedProcedure.club.updateBooklistSettings.handler(
+	async ({ input, context, errors }) => {
+		const { slug, ...patch } = input;
+		const result = await updateBooklistSettings(context.db, context.viewer.user.id, slug, patch);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listBooklistRoute = publicProcedure.club.listBooklist.handler(
+	async ({ input, context, errors }) => {
+		const result = await listBooklist(context.db, input.slug, context.session?.user?.id, {
+			limit: input.limit,
+			offset: input.offset,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listBooklistProposalsRoute = protectedProcedure.club.listBooklistProposals.handler(
+	async ({ input, context, errors }) => {
+		const result = await listBooklistProposals(context.db, input.slug, context.viewer.user.id);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const addBooklistItemRoute = protectedProcedure.club.addBooklistItem.handler(
+	async ({ input, context, errors }) => {
+		const result = await addOrProposeBooklistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const approveBooklistProposalRoute = protectedProcedure.club.approveBooklistProposal.handler(
+	async ({ input, context, errors }) => {
+		const result = await approveBooklistProposal(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const rejectBooklistProposalRoute = protectedProcedure.club.rejectBooklistProposal.handler(
+	async ({ input, context, errors }) => {
+		const result = await rejectBooklistProposal(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const removeBooklistItemRoute = protectedProcedure.club.removeBooklistItem.handler(
+	async ({ input, context, errors }) => {
+		const result = await removeBooklistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
 export const clubRouter = {
 	create,
 	update,
@@ -294,4 +383,11 @@ export const clubRouter = {
 	removeMember: removeMemberRoute,
 	leave,
 	transferAdmin: transferAdminRoute,
+	updateBooklistSettings: updateBooklistSettingsRoute,
+	listBooklist: listBooklistRoute,
+	listBooklistProposals: listBooklistProposalsRoute,
+	addBooklistItem: addBooklistItemRoute,
+	approveBooklistProposal: approveBooklistProposalRoute,
+	rejectBooklistProposal: rejectBooklistProposalRoute,
+	removeBooklistItem: removeBooklistItemRoute,
 };

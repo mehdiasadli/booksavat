@@ -1,7 +1,7 @@
 import { defineRelations } from "drizzle-orm";
 
 import { account, session, user, verification } from "@/db/schemas/auth.schema";
-import { club, clubMembership } from "@/db/schemas/club.schema";
+import { club, clubBooklistItem, clubMembership } from "@/db/schemas/club.schema";
 import { feedback } from "@/db/schemas/feedback.schema";
 import { follow } from "@/db/schemas/follow.schema";
 import { readingLog } from "@/db/schemas/reading-log.schema";
@@ -20,6 +20,7 @@ export const appRelations = defineRelations(
 		follow,
 		club,
 		clubMembership,
+		clubBooklistItem,
 	},
 	(r) => ({
 		user: {
@@ -37,6 +38,7 @@ export const appRelations = defineRelations(
 				to: r.follow.followingId,
 			}),
 			clubMemberships: r.many.clubMembership(),
+			clubBooklistItems: r.many.clubBooklistItem(),
 		},
 		session: {
 			user: r.one.user({
@@ -95,6 +97,7 @@ export const appRelations = defineRelations(
 		},
 		club: {
 			memberships: r.many.clubMembership(),
+			booklistItems: r.many.clubBooklistItem(),
 		},
 		clubMembership: {
 			club: r.one.club({
@@ -104,6 +107,18 @@ export const appRelations = defineRelations(
 			}),
 			user: r.one.user({
 				from: r.clubMembership.userId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		clubBooklistItem: {
+			club: r.one.club({
+				from: r.clubBooklistItem.clubId,
+				to: r.club.id,
+				optional: false,
+			}),
+			addedBy: r.one.user({
+				from: r.clubBooklistItem.addedByUserId,
 				to: r.user.id,
 				optional: false,
 			}),

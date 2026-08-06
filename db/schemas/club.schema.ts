@@ -1,4 +1,14 @@
-import { index, pgEnum, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+	boolean,
+	index,
+	integer,
+	pgEnum,
+	pgTable,
+	text,
+	unique,
+	uniqueIndex,
+	uuid,
+} from "drizzle-orm/pg-core";
 
 import { user } from "@/db/schemas/auth.schema";
 import { createdAt, id, updatedAt } from "@/db/utils";
@@ -21,6 +31,13 @@ export const clubMemberStatusEnum = pgEnum("club_member_status", [
 	"requested",
 ] as const);
 
+export const clubBooklistItemStatusEnum = pgEnum("club_booklist_item_status", [
+	"active",
+	"proposed",
+] as const);
+
+export const clubShortlistModeEnum = pgEnum("club_shortlist_mode", ["manual", "random"] as const);
+
 export const club = pgTable(
 	"club",
 	{
@@ -34,6 +51,17 @@ export const club = pgTable(
 		visibility: clubVisibilityEnum("visibility").default("public").notNull(),
 		/** Opaque code for shareable join links (`/join/[inviteCode]`). */
 		inviteCode: text("invite_code").notNull().unique(),
+
+		/** Booklist permissions — admin always bypasses these. */
+		modsCanAdd: boolean("mods_can_add").default(true).notNull(),
+		membersCanAdd: boolean("members_can_add").default(false).notNull(),
+		modsCanRemove: boolean("mods_can_remove").default(false).notNull(),
+		membersCanRemove: boolean("members_can_remove").default(false).notNull(),
+		modsCanPropose: boolean("mods_can_propose").default(true).notNull(),
+		membersCanPropose: boolean("members_can_propose").default(true).notNull(),
+
+		shortlistMode: clubShortlistModeEnum("shortlist_mode").default("manual").notNull(),
+		defaultShortlistSize: integer("default_shortlist_size").default(10).notNull(),
 	},
 	(table) => [
 		index("club_visibility_idx").on(table.visibility),
@@ -62,5 +90,30 @@ export const clubMembership = pgTable(
 		index("club_membership_user_status_idx").on(table.userId, table.status),
 		index("club_membership_club_status_idx").on(table.clubId, table.status),
 		index("club_membership_club_role_idx").on(table.clubId, table.role),
+	],
+);
+
+export const clubBooklistItem = pgTable(
+	"club_booklist_item",
+	{
+		id,
+		createdAt,
+		updatedAt,
+
+		clubId: uuid("club_id")
+			.notNull()
+			.references(() => club.id, { onDelete: "cascade" }),
+		/** Open Library work OLID, e.g. `OL45804W`. */
+		workId: text("work_id").notNull(),
+		addedByUserId: uuid("added_by_user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		status: clubBooklistItemStatusEnum("status").default("active").notNull(),
+	},
+	(table) => [
+		unique("club_booklist_item_club_work_uidx").on(table.clubId, table.workId),
+		index("club_booklist_item_club_status_idx").on(table.clubId, table.status),
+		index("club_booklist_item_work_id_idx").on(table.workId),
+		index("club_booklist_item_added_by_idx").on(table.addedByUserId),
 	],
 );

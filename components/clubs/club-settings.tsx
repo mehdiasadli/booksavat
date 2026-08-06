@@ -8,15 +8,43 @@ import { toast } from "sonner";
 import { ClubShareSheet } from "@/components/clubs/club-share-sheet";
 import { ClubSubnav } from "@/components/clubs/club-subnav";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ClubVisibility } from "@/lib/clubs/constants";
+import type {
+	ClubBooklistSettings,
+	ClubShortlistMode,
+	ClubVisibility,
+} from "@/lib/clubs/constants";
 import { client, orpc } from "@/lib/orpc";
 import { slugify } from "@/lib/slugify";
 import type { ClubDetail } from "@/server/contracts";
 
 interface ClubSettingsProps {
 	initial: ClubDetail;
+}
+
+function PermissionRow({
+	id,
+	label,
+	checked,
+	onCheckedChange,
+}: {
+	id: string;
+	label: string;
+	checked: boolean;
+	onCheckedChange: (checked: boolean) => void;
+}) {
+	return (
+		<label htmlFor={id} className="flex items-center gap-2 text-sm">
+			<Checkbox
+				id={id}
+				checked={checked}
+				onCheckedChange={(value) => onCheckedChange(value === true)}
+			/>
+			<span>{label}</span>
+		</label>
+	);
 }
 
 export function ClubSettings({ initial }: ClubSettingsProps) {
@@ -33,16 +61,23 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 	const [description, setDescription] = useState(club.description ?? "");
 	const [visibility, setVisibility] = useState<ClubVisibility>(club.visibility);
 	const [inviteCode, setInviteCode] = useState(club.inviteCode);
+	const [booklist, setBooklist] = useState<ClubBooklistSettings>(club.booklistSettings);
 
 	const save = useMutation({
-		mutationFn: () =>
-			client.club.update({
+		mutationFn: async () => {
+			const updated = await client.club.update({
 				slug: club.slug,
 				name,
 				nextSlug: nextSlug !== club.slug ? nextSlug : undefined,
 				description: description.trim() || null,
 				visibility,
-			}),
+			});
+			await client.club.updateBooklistSettings({
+				slug: updated.slug,
+				...booklist,
+			});
+			return updated;
+		},
 		onSuccess: async (updated) => {
 			toast.success("Settings saved");
 			await queryClient.invalidateQueries({ queryKey: orpc.club.key() });
@@ -149,6 +184,119 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 						<option value="invite_only">Invite only — hidden from search</option>
 					</select>
 				</div>
+
+				<section className="grid gap-4 border-t border-border pt-6">
+					<div className="grid gap-1">
+						<h2 className="font-heading text-lg font-semibold tracking-tight">Booklist</h2>
+						<p className="text-sm text-muted-foreground text-pretty">
+							Admin can always add and remove. Members without add permission can propose books when
+							propose is enabled.
+						</p>
+					</div>
+
+					<div className="grid gap-2">
+						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Can add
+						</p>
+						<PermissionRow
+							id="mods-can-add"
+							label="Moderators"
+							checked={booklist.modsCanAdd}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, modsCanAdd: checked }))
+							}
+						/>
+						<PermissionRow
+							id="members-can-add"
+							label="Members"
+							checked={booklist.membersCanAdd}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, membersCanAdd: checked }))
+							}
+						/>
+					</div>
+
+					<div className="grid gap-2">
+						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Can propose
+						</p>
+						<PermissionRow
+							id="mods-can-propose"
+							label="Moderators"
+							checked={booklist.modsCanPropose}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, modsCanPropose: checked }))
+							}
+						/>
+						<PermissionRow
+							id="members-can-propose"
+							label="Members"
+							checked={booklist.membersCanPropose}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, membersCanPropose: checked }))
+							}
+						/>
+					</div>
+
+					<div className="grid gap-2">
+						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Can remove
+						</p>
+						<PermissionRow
+							id="mods-can-remove"
+							label="Moderators"
+							checked={booklist.modsCanRemove}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, modsCanRemove: checked }))
+							}
+						/>
+						<PermissionRow
+							id="members-can-remove"
+							label="Members"
+							checked={booklist.membersCanRemove}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, membersCanRemove: checked }))
+							}
+						/>
+					</div>
+
+					<div className="grid gap-2 sm:grid-cols-2">
+						<div className="grid gap-2">
+							<Label htmlFor="shortlist-mode">Session shortlist</Label>
+							<select
+								id="shortlist-mode"
+								value={booklist.shortlistMode}
+								onChange={(event) =>
+									setBooklist((prev) => ({
+										...prev,
+										shortlistMode: event.target.value as ClubShortlistMode,
+									}))
+								}
+								className="h-9 rounded-md border bg-background px-3 text-sm"
+							>
+								<option value="manual">Manual pick</option>
+								<option value="random">Random from booklist</option>
+							</select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="shortlist-size">Default shortlist size</Label>
+							<Input
+								id="shortlist-size"
+								type="number"
+								min={2}
+								max={30}
+								value={booklist.defaultShortlistSize}
+								onChange={(event) =>
+									setBooklist((prev) => ({
+										...prev,
+										defaultShortlistSize: Number(event.target.value) || prev.defaultShortlistSize,
+									}))
+								}
+							/>
+						</div>
+					</div>
+				</section>
+
 				<div>
 					<Button type="submit" disabled={!name.trim() || !nextSlug.trim() || save.isPending}>
 						{save.isPending ? "Saving…" : "Save changes"}
