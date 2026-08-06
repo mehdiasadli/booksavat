@@ -1,5 +1,6 @@
 import { implementer } from "@/server/procedures";
 import { bookRouter } from "@/server/routes/book.route";
+import { clubRouter } from "@/server/routes/club.route";
 import { feedbackRouter } from "@/server/routes/feedback.route";
 import { followRouter } from "@/server/routes/follow.route";
 import { healthRouter } from "@/server/routes/health.route";
@@ -22,4 +23,5 @@ export const router = implementer.router({
 	readingLog: readingLogRouter,
 	feedback: feedbackRouter,
 	follow: followRouter,
+	club: clubRouter,
 });
