@@ -98,13 +98,7 @@ export function ClubBooklist({ initial }: ClubBooklistProps) {
 
 	return (
 		<section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6">
-			<ClubSubnav
-				slug={club.slug}
-				showBooklist
-				showSessions={club.canViewContent}
-				showMembers={club.canViewContent}
-				showSettings={club.canManageSettings}
-			/>
+			<ClubSubnav club={club} />
 
 			<header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 				<div className="grid gap-1">

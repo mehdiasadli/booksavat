@@ -360,13 +360,7 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 
 	return (
 		<section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6">
-			<ClubSubnav
-				slug={club.slug}
-				showBooklist={club.canViewContent}
-				showSessions={club.canViewContent}
-				showMembers={club.canViewContent}
-				showSettings={club.canManageSettings}
-			/>
+			<ClubSubnav club={club} />
 
 			<header className="grid gap-3">
 				<div className="flex flex-wrap items-center gap-2">
