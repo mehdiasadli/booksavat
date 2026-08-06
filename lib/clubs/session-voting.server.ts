@@ -518,6 +518,10 @@ export async function setSessionVoteBlocked(
 		return fail("bad_request", "Vote blocklist can only be changed before reading starts");
 	}
 
+	if (targetUserId === viewerUserId) {
+		return fail("bad_request", "You cannot block yourself from voting");
+	}
+
 	const updated = await db
 		.update(sessionParticipant)
 		.set({ voteBlocked, updatedAt: new Date() })

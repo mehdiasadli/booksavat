@@ -9,9 +9,28 @@ import { toast } from "sonner";
 import type { z } from "zod";
 
 import { ClubSubnav } from "@/components/clubs/club-subnav";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { authClient } from "@/lib/auth-client";
 import { client, orpc } from "@/lib/orpc";
 import type { ClubDetail } from "@/server/contracts";
 import type { readingSessionDetailSchema } from "@/server/contracts/club.contract";
@@ -45,8 +64,11 @@ interface ClubSessionDetailProps {
 export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDetailProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
-	const [addWorkId, setAddWorkId] = useState("");
-	const [tieBreakWorkId, setTieBreakWorkId] = useState("");
+	const { data: authSession } = authClient.useSession();
+	const viewerUserId = authSession?.user.id;
+
+	const [addWorkId, setAddWorkId] = useState<string | null>(null);
+	const [tieBreakWorkId, setTieBreakWorkId] = useState<string | null>(null);
 	const [chipPicks, setChipPicks] = useState<Record<number, string>>({});
 
 	const { data: club = initialClub } = useQuery({
@@ -84,14 +106,14 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 		}
 		setChipPicks(next);
 		if (session.voting.leadingWorkIds.length === 1) {
-			setTieBreakWorkId(session.voting.leadingWorkIds[0] ?? "");
+			setTieBreakWorkId(session.voting.leadingWorkIds[0] ?? null);
 		} else if (
 			session.selectedWorkId &&
 			session.voting.leadingWorkIds.includes(session.selectedWorkId)
 		) {
 			setTieBreakWorkId(session.selectedWorkId);
 		} else {
-			setTieBreakWorkId("");
+			setTieBreakWorkId(null);
 		}
 	}, [session.voting.viewerAssignments, session.voting.leadingWorkIds, session.selectedWorkId]);
 
@@ -162,7 +184,7 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 			}),
 		onSuccess: () => {
 			toast.success("Added to shortlist");
-			setAddWorkId("");
+			setAddWorkId(null);
 			invalidate();
 		},
 		onError: (error) => toast.error(error instanceof Error ? error.message : "Could not add"),
@@ -251,6 +273,10 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 		busy ||
 		(session.status === "proposed" && session.voting.shortlist.length < 2) ||
 		(session.status === "voting" && needsTieBreak && !tieBreakWorkId);
+
+	const blocklistParticipants = session.voting.participants.filter(
+		(participant) => participant.userId !== viewerUserId,
+	);
 
 	return (
 		<section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6">
@@ -376,23 +402,28 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 						<div className="grid gap-2 border-t border-border pt-3">
 							<Label htmlFor="add-shortlist">Add from booklist</Label>
 							<div className="flex flex-wrap gap-2">
-								<select
-									id="add-shortlist"
+								<Select
 									value={addWorkId}
-									onChange={(event) => setAddWorkId(event.target.value)}
-									className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm"
+									onValueChange={(value) => setAddWorkId(value)}
+									disabled={busy || addableBooks.length === 0}
 								>
-									<option value="">Select a book…</option>
-									{addableBooks.map((item) => (
-										<option key={item.id} value={item.workId}>
-											{item.title}
-										</option>
-									))}
-								</select>
+									<SelectTrigger id="add-shortlist" className="min-w-0 flex-1">
+										<SelectValue placeholder="Select a book…" />
+									</SelectTrigger>
+									<SelectContent>
+										{addableBooks.map((item) => (
+											<SelectItem key={item.id} value={item.workId}>
+												{item.title}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 								<Button
 									size="sm"
 									disabled={busy || !addWorkId}
-									onClick={() => addShortlist.mutate(addWorkId)}
+									onClick={() => {
+										if (addWorkId) addShortlist.mutate(addWorkId);
+									}}
 								>
 									Add
 								</Button>
@@ -422,21 +453,25 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 							{session.voting.viewerChips.map((points) => (
 								<div key={points} className="grid gap-1.5 sm:grid-cols-[4rem_1fr] sm:items-center">
 									<Label htmlFor={`chip-${points}`}>{points} pts</Label>
-									<select
-										id={`chip-${points}`}
-										value={chipPicks[points] ?? ""}
-										onChange={(event) =>
-											setChipPicks((prev) => ({ ...prev, [points]: event.target.value }))
-										}
-										className="h-9 rounded-md border bg-background px-3 text-sm"
+									<Select
+										value={chipPicks[points] ?? null}
+										onValueChange={(value) => {
+											if (!value) return;
+											setChipPicks((prev) => ({ ...prev, [points]: value }));
+										}}
+										disabled={busy}
 									>
-										<option value="">Choose a book…</option>
-										{session.voting.shortlist.map((item) => (
-											<option key={item.workId} value={item.workId}>
-												{item.title}
-											</option>
-										))}
-									</select>
+										<SelectTrigger id={`chip-${points}`} className="w-full">
+											<SelectValue placeholder="Choose a book…" />
+										</SelectTrigger>
+										<SelectContent>
+											{session.voting.shortlist.map((item) => (
+												<SelectItem key={item.workId} value={item.workId}>
+													{item.title}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 								</div>
 							))}
 							<Button size="sm" disabled={busy || !voteReady} onClick={() => castVotes.mutate()}>
@@ -449,27 +484,30 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 					{session.canAdvance && needsTieBreak ? (
 						<div className="grid gap-2 border-t border-border pt-3">
 							<Label htmlFor="tie-break">Tie-break pick</Label>
-							<select
-								id="tie-break"
+							<Select
 								value={tieBreakWorkId}
-								onChange={(event) => setTieBreakWorkId(event.target.value)}
-								className="h-9 rounded-md border bg-background px-3 text-sm"
+								onValueChange={(value) => setTieBreakWorkId(value)}
+								disabled={busy}
 							>
-								<option value="">Pick a leading book…</option>
-								{session.voting.shortlist
-									.filter((item) => session.voting.leadingWorkIds.includes(item.workId))
-									.map((item) => (
-										<option key={item.workId} value={item.workId}>
-											{item.title} ({item.score} pts)
-										</option>
-									))}
-							</select>
+								<SelectTrigger id="tie-break" className="w-full">
+									<SelectValue placeholder="Pick a leading book…" />
+								</SelectTrigger>
+								<SelectContent>
+									{session.voting.shortlist
+										.filter((item) => session.voting.leadingWorkIds.includes(item.workId))
+										.map((item) => (
+											<SelectItem key={item.workId} value={item.workId}>
+												{item.title} ({item.score} pts)
+											</SelectItem>
+										))}
+								</SelectContent>
+							</Select>
 						</div>
 					) : null}
 				</section>
 			) : null}
 
-			{session.voting.canManageBlocklist && session.voting.participants.length > 0 ? (
+			{session.voting.canManageBlocklist && blocklistParticipants.length > 0 ? (
 				<section className="grid gap-3 rounded-lg border border-border p-4">
 					<div>
 						<h2 className="font-heading text-lg font-semibold tracking-tight">Vote blocklist</h2>
@@ -478,7 +516,7 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 						</p>
 					</div>
 					<ul className="grid gap-2">
-						{session.voting.participants.map((participant) => (
+						{blocklistParticipants.map((participant) => (
 							<li
 								key={participant.userId}
 								className="flex flex-wrap items-center justify-between gap-2 text-sm"
@@ -540,32 +578,57 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 					</Button>
 				) : null}
 				{session.canCancel ? (
-					<Button
-						size="sm"
-						variant="outline"
-						disabled={busy}
-						onClick={() => {
-							if (window.confirm("Cancel this session?")) {
-								cancel.mutate({ slug: club.slug, sessionId: session.id });
-							}
-						}}
-					>
-						Cancel
-					</Button>
+					<AlertDialog>
+						<AlertDialogTrigger render={<Button size="sm" variant="outline" disabled={busy} />}>
+							Cancel
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Cancel this session?</AlertDialogTitle>
+								<AlertDialogDescription>
+									This ends the session as cancelled. Participants keep their join history, but
+									stages cannot continue.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Keep session</AlertDialogCancel>
+								<AlertDialogAction
+									variant="destructive"
+									disabled={cancel.isPending}
+									onClick={() => cancel.mutate({ slug: club.slug, sessionId: session.id })}
+								>
+									{cancel.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+									Cancel session
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				) : null}
 				{session.canAbandon ? (
-					<Button
-						size="sm"
-						variant="destructive"
-						disabled={busy}
-						onClick={() => {
-							if (window.confirm("Abandon this reading session?")) {
-								abandon.mutate({ slug: club.slug, sessionId: session.id });
-							}
-						}}
-					>
-						Abandon
-					</Button>
+					<AlertDialog>
+						<AlertDialogTrigger render={<Button size="sm" variant="destructive" disabled={busy} />}>
+							Abandon
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Abandon this reading session?</AlertDialogTitle>
+								<AlertDialogDescription>
+									This marks the session abandoned. You can’t reopen it afterward.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Keep reading</AlertDialogCancel>
+								<AlertDialogAction
+									variant="destructive"
+									disabled={abandon.isPending}
+									onClick={() => abandon.mutate({ slug: club.slug, sessionId: session.id })}
+								>
+									{abandon.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+									Abandon session
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				) : null}
 				<Button
 					size="sm"
