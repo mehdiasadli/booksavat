@@ -1,3 +1,5 @@
+import { DEFAULT_VOTE_CHIPS_BY_ROLE, type VoteChipsByRole } from "@/lib/clubs/session-voting";
+
 export const CLUB_VISIBILITIES = ["public", "invite_only", "private"] as const;
 export type ClubVisibility = (typeof CLUB_VISIBILITIES)[number];
 
@@ -20,6 +22,8 @@ export {
 	type ReadingSessionStatus,
 } from "@/lib/clubs/session-lifecycle";
 
+export { DEFAULT_VOTE_CHIPS_BY_ROLE, type VoteChipsByRole };
+
 export const CLUB_NAME_MAX = 80;
 export const CLUB_DESCRIPTION_MAX = 2000;
 export const CLUB_SLUG_MAX = 48;
@@ -37,6 +41,7 @@ export type ClubBooklistSettings = {
 	membersCanPropose: boolean;
 	shortlistMode: ClubShortlistMode;
 	defaultShortlistSize: number;
+	voteChipsByRole: VoteChipsByRole;
 };
 
 export const DEFAULT_CLUB_BOOKLIST_SETTINGS: ClubBooklistSettings = {
@@ -48,4 +53,5 @@ export const DEFAULT_CLUB_BOOKLIST_SETTINGS: ClubBooklistSettings = {
 	membersCanPropose: true,
 	shortlistMode: "manual",
 	defaultShortlistSize: CLUB_DEFAULT_SHORTLIST_SIZE,
+	voteChipsByRole: DEFAULT_VOTE_CHIPS_BY_ROLE,
 };

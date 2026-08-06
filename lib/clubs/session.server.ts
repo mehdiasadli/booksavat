@@ -3,15 +3,7 @@ import "server-only";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
 
 import type { Database } from "@/db";
-import {
-	club,
-	clubBooklistItem,
-	clubMembership,
-	readingSession,
-	sessionParticipant,
-	user,
-} from "@/db/schema";
-import { tryWorkId } from "@/lib/books/ids";
+import { club, clubMembership, readingSession, sessionParticipant, user } from "@/db/schema";
 import { CLUB_SESSION_TITLE_MAX } from "@/lib/clubs/constants";
 import {
 	advanceRequiresSelectedWork,
@@ -24,6 +16,14 @@ import {
 	type ReadingSessionStatus,
 	selectedWorkRequiredForStatus,
 } from "@/lib/clubs/session-lifecycle";
+import {
+	assertReadyToOpenVoting,
+	buildSessionVotingState,
+	clubVoteChips,
+	isWorkOnLiveSessionShortlist,
+	resolveVotingSelectedWork,
+	type SessionVotingState,
+} from "@/lib/clubs/session-voting.server";
 import { canViewClubContent, type ViewerMembership } from "@/lib/clubs/visibility";
 
 export type ReadingSessionSummary = {
@@ -52,6 +52,7 @@ export type ReadingSessionDetail = ReadingSessionSummary & {
 		name: string;
 		image: string | null;
 	};
+	voting: SessionVotingState;
 };
 
 type ServiceError = {
@@ -178,6 +179,8 @@ async function toDetail(
 		.where(eq(user.id, row.createdByUserId))
 		.limit(1);
 
+	const voting = await buildSessionVotingState(db, row, membership, viewerUserId);
+
 	return {
 		...summary,
 		viewerJoined: joined,
@@ -192,27 +195,8 @@ async function toDetail(
 			name: "Unknown",
 			image: null,
 		},
+		voting,
 	};
-}
-
-async function assertWorkOnClubBooklist(
-	db: Database,
-	clubId: string,
-	workId: string,
-): Promise<ServiceResult<true>> {
-	const [item] = await db
-		.select({ id: clubBooklistItem.id })
-		.from(clubBooklistItem)
-		.where(
-			and(
-				eq(clubBooklistItem.clubId, clubId),
-				eq(clubBooklistItem.workId, workId),
-				eq(clubBooklistItem.status, "active"),
-			),
-		)
-		.limit(1);
-	if (!item) return fail("bad_request", "Selected work must be an active booklist item");
-	return ok(true);
 }
 
 export async function createReadingSession(
@@ -438,17 +422,18 @@ export async function advanceReadingSession(
 	if (!next) return fail("bad_request", "This session cannot be advanced further");
 
 	let selectedWorkId = row.selectedWorkId;
+	let voteChipsByRole = row.voteChipsByRole;
+
+	if (row.status === "proposed" && next === "voting") {
+		const ready = await assertReadyToOpenVoting(db, row.id);
+		if (!ready.ok) return ready;
+		voteChipsByRole = clubVoteChips(clubRow);
+	}
 
 	if (advanceRequiresSelectedWork(row.status)) {
-		const raw = input?.selectedWorkId ?? row.selectedWorkId;
-		if (!raw) {
-			return fail("bad_request", "Pick a book from the booklist before leaving voting");
-		}
-		const workId = tryWorkId(raw);
-		if (!workId) return fail("bad_request", "Invalid work id");
-		const onList = await assertWorkOnClubBooklist(db, clubRow.id, workId);
-		if (!onList.ok) return onList;
-		selectedWorkId = workId;
+		const resolved = await resolveVotingSelectedWork(db, row, input?.selectedWorkId);
+		if (!resolved.ok) return resolved;
+		selectedWorkId = resolved.data;
 	}
 
 	if (selectedWorkRequiredForStatus(next) && !selectedWorkId) {
@@ -460,6 +445,7 @@ export async function advanceReadingSession(
 		.set({
 			status: next,
 			selectedWorkId,
+			voteChipsByRole,
 			updatedAt: new Date(),
 		})
 		.where(eq(readingSession.id, row.id))
@@ -526,7 +512,7 @@ export async function abandonReadingSession(
 	return ok(await toDetail(db, updated, viewerUserId, membership));
 }
 
-/** True if work is selected on a live session (shortlist locks land in PR4). */
+/** True if work is selected on a live session or on a live session shortlist. */
 export async function isWorkLockedByLiveSession(
 	db: Database,
 	clubId: string,
@@ -543,7 +529,8 @@ export async function isWorkLockedByLiveSession(
 			),
 		)
 		.limit(1);
-	return Boolean(row);
+	if (row) return true;
+	return isWorkOnLiveSessionShortlist(db, clubId, workId);
 }
 
 export function clubSessionCapabilities(membership: ViewerMembership) {

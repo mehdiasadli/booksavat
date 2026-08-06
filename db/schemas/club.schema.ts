@@ -1,7 +1,9 @@
+import { sql } from "drizzle-orm";
 import {
 	boolean,
 	index,
 	integer,
+	jsonb,
 	pgEnum,
 	pgTable,
 	text,
@@ -12,6 +14,12 @@ import {
 
 import { user } from "@/db/schemas/auth.schema";
 import { createdAt, id, updatedAt } from "@/db/utils";
+
+type VoteChipsByRoleColumn = {
+	admin: number[];
+	moderator: number[];
+	member: number[];
+};
 
 export const clubVisibilityEnum = pgEnum("club_visibility", [
 	"public",
@@ -62,6 +70,10 @@ export const club = pgTable(
 
 		shortlistMode: clubShortlistModeEnum("shortlist_mode").default("manual").notNull(),
 		defaultShortlistSize: integer("default_shortlist_size").default(10).notNull(),
+		voteChipsByRole: jsonb("vote_chips_by_role")
+			.$type<VoteChipsByRoleColumn>()
+			.notNull()
+			.default(sql`'{"admin":[1,2,3],"moderator":[1,2,3],"member":[1,2,3]}'::jsonb`),
 	},
 	(table) => [
 		index("club_visibility_idx").on(table.visibility),

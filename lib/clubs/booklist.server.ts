@@ -20,6 +20,11 @@ import {
 	type ClubShortlistMode,
 } from "@/lib/clubs/constants";
 import {
+	DEFAULT_VOTE_CHIPS_BY_ROLE,
+	normalizeVoteChips,
+	type VoteChipsByRole,
+} from "@/lib/clubs/session-voting";
+import {
 	canManageSettings,
 	canViewClubContent,
 	type ViewerMembership,
@@ -72,6 +77,7 @@ function settingsFromClub(row: typeof club.$inferSelect): ClubBooklistSettings {
 		membersCanPropose: row.membersCanPropose,
 		shortlistMode: row.shortlistMode,
 		defaultShortlistSize: row.defaultShortlistSize,
+		voteChipsByRole: normalizeVoteChips(row.voteChipsByRole) ?? DEFAULT_VOTE_CHIPS_BY_ROLE,
 	};
 }
 
@@ -232,6 +238,17 @@ export async function updateBooklistSettings(
 			);
 		}
 		next.defaultShortlistSize = size;
+	}
+
+	if (patch.voteChipsByRole !== undefined) {
+		const chips = normalizeVoteChips(patch.voteChipsByRole);
+		if (!chips) {
+			return fail(
+				"bad_request",
+				"Vote chips must be unique integers 1–99 per role (admin, moderator, member)",
+			);
+		}
+		next.voteChipsByRole = chips as VoteChipsByRole;
 	}
 
 	const [updated] = await db.update(club).set(next).where(eq(club.id, row.id)).returning();
