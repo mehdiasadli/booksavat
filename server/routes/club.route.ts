@@ -44,6 +44,7 @@ import {
 	leaveReadingSession,
 	listReadingSessions,
 } from "@/lib/clubs/session.server";
+import { setSessionReadingOverride } from "@/lib/clubs/session-reading.server";
 import {
 	addSessionShortlistItem,
 	castSessionVotes,
@@ -542,6 +543,19 @@ export const setSessionVoteBlockedRoute = protectedProcedure.club.setSessionVote
 	},
 );
 
+export const setSessionReadingOverrideRoute =
+	protectedProcedure.club.setSessionReadingOverride.handler(async ({ input, context, errors }) => {
+		const result = await setSessionReadingOverride(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			{ userId: input.userId, status: input.status },
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	});
+
 export const clubRouter = {
 	create,
 	update,
@@ -588,4 +602,5 @@ export const clubRouter = {
 	fillRandomSessionShortlist: fillRandomSessionShortlistRoute,
 	castSessionVotes: castSessionVotesRoute,
 	setSessionVoteBlocked: setSessionVoteBlockedRoute,
+	setSessionReadingOverride: setSessionReadingOverrideRoute,
 };
