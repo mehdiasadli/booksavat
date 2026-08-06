@@ -8,6 +8,14 @@ export const clubMemberStatusSchema = z.enum(["active", "invited", "requested"])
 export const clubBooklistItemStatusSchema = z.enum(["active", "proposed"]);
 export const clubShortlistModeSchema = z.enum(["manual", "random"]);
 
+const voteChipListSchema = z.array(z.number().int().min(1).max(99)).min(1).max(8);
+
+export const voteChipsByRoleSchema = z.object({
+	admin: voteChipListSchema,
+	moderator: voteChipListSchema,
+	member: voteChipListSchema,
+});
+
 export const clubBooklistSettingsSchema = z.object({
 	modsCanAdd: z.boolean(),
 	membersCanAdd: z.boolean(),
@@ -17,6 +25,7 @@ export const clubBooklistSettingsSchema = z.object({
 	membersCanPropose: z.boolean(),
 	shortlistMode: clubShortlistModeSchema,
 	defaultShortlistSize: z.number().int().min(2).max(30),
+	voteChipsByRole: voteChipsByRoleSchema,
 });
 
 export const clubSummarySchema = z.object({
@@ -75,6 +84,39 @@ export const readingSessionSummarySchema = z.object({
 	updatedAt: z.date(),
 });
 
+export const sessionVoteAssignmentSchema = z.object({
+	points: z.number().int().min(1).max(99),
+	workId: z.string(),
+});
+
+export const sessionVotingStateSchema = z.object({
+	voteChipsByRole: voteChipsByRoleSchema.nullable(),
+	shortlist: z.array(
+		z.object({
+			workId: z.string(),
+			title: z.string(),
+			coverUrl: z.string().nullable(),
+			score: z.number().int().min(0),
+		}),
+	),
+	leadingWorkIds: z.array(z.string()),
+	viewerChips: z.array(z.number().int().min(1).max(99)),
+	viewerAssignments: z.array(sessionVoteAssignmentSchema),
+	canVote: z.boolean(),
+	canManageShortlist: z.boolean(),
+	canManageBlocklist: z.boolean(),
+	participants: z.array(
+		z.object({
+			userId: z.uuid(),
+			username: z.string(),
+			name: z.string(),
+			image: z.url().nullable(),
+			voteBlocked: z.boolean(),
+			hasVoted: z.boolean(),
+		}),
+	),
+});
+
 export const readingSessionDetailSchema = readingSessionSummarySchema.extend({
 	viewerJoined: z.boolean(),
 	canJoin: z.boolean(),
@@ -88,6 +130,7 @@ export const readingSessionDetailSchema = readingSessionSummarySchema.extend({
 		name: z.string(),
 		image: z.url().nullable(),
 	}),
+	voting: sessionVotingStateSchema,
 });
 
 export const clubBooklistItemSchema = z.object({
@@ -436,6 +479,7 @@ export const updateBooklistSettingsContract = base
 			membersCanPropose: z.boolean().optional(),
 			shortlistMode: clubShortlistModeSchema.optional(),
 			defaultShortlistSize: z.number().int().min(2).max(30).optional(),
+			voteChipsByRole: voteChipsByRoleSchema.optional(),
 		}),
 	)
 	.output(clubBooklistSettingsSchema);
@@ -596,6 +640,77 @@ export const abandonReadingSessionContract = base
 	.input(sessionIdInput)
 	.output(readingSessionDetailSchema);
 
+export const addSessionShortlistItemContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/shortlist",
+		tags: ["club"],
+		summary: "Add a book to the session shortlist",
+	})
+	.input(
+		sessionIdInput.extend({
+			workId: z.string().trim().min(1).max(64),
+		}),
+	)
+	.output(sessionVotingStateSchema);
+
+export const removeSessionShortlistItemContract = base
+	.route({
+		method: "DELETE",
+		path: "/club/{slug}/sessions/{sessionId}/shortlist/{workId}",
+		tags: ["club"],
+		summary: "Remove a book from the session shortlist",
+	})
+	.input(
+		sessionIdInput.extend({
+			workId: z.string().trim().min(1).max(64),
+		}),
+	)
+	.output(sessionVotingStateSchema);
+
+export const fillRandomSessionShortlistContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/shortlist/random",
+		tags: ["club"],
+		summary: "Fill the session shortlist randomly from the booklist",
+	})
+	.input(
+		sessionIdInput.extend({
+			size: z.number().int().min(2).max(30).optional(),
+		}),
+	)
+	.output(sessionVotingStateSchema);
+
+export const castSessionVotesContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/votes",
+		tags: ["club"],
+		summary: "Cast or update session vote chip assignments",
+	})
+	.input(
+		sessionIdInput.extend({
+			assignments: z.array(sessionVoteAssignmentSchema).min(1).max(8),
+		}),
+	)
+	.output(sessionVotingStateSchema);
+
+export const setSessionVoteBlockedContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/vote-block",
+		tags: ["club"],
+		summary: "Block or unblock a participant from voting",
+	})
+	.input(
+		sessionIdInput.extend({
+			userId: z.uuid(),
+			voteBlocked: z.boolean(),
+		}),
+	)
+	.output(sessionVotingStateSchema);
+
 export const clubContract = {
 	create: createClubContract,
 	update: updateClubContract,
@@ -637,4 +752,9 @@ export const clubContract = {
 	advanceReadingSession: advanceReadingSessionContract,
 	cancelReadingSession: cancelReadingSessionContract,
 	abandonReadingSession: abandonReadingSessionContract,
+	addSessionShortlistItem: addSessionShortlistItemContract,
+	removeSessionShortlistItem: removeSessionShortlistItemContract,
+	fillRandomSessionShortlist: fillRandomSessionShortlistContract,
+	castSessionVotes: castSessionVotesContract,
+	setSessionVoteBlocked: setSessionVoteBlockedContract,
 };

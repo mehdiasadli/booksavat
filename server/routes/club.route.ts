@@ -44,6 +44,13 @@ import {
 	leaveReadingSession,
 	listReadingSessions,
 } from "@/lib/clubs/session.server";
+import {
+	addSessionShortlistItem,
+	castSessionVotes,
+	fillRandomSessionShortlist,
+	removeSessionShortlistItem,
+	setSessionVoteBlocked,
+} from "@/lib/clubs/session-voting.server";
 import { protectedProcedure, publicProcedure } from "@/server/procedures";
 
 function mapServiceError(
@@ -466,6 +473,75 @@ export const abandonReadingSessionRoute = protectedProcedure.club.abandonReading
 	},
 );
 
+export const addSessionShortlistItemRoute = protectedProcedure.club.addSessionShortlistItem.handler(
+	async ({ input, context, errors }) => {
+		const result = await addSessionShortlistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const removeSessionShortlistItemRoute =
+	protectedProcedure.club.removeSessionShortlistItem.handler(async ({ input, context, errors }) => {
+		const result = await removeSessionShortlistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	});
+
+export const fillRandomSessionShortlistRoute =
+	protectedProcedure.club.fillRandomSessionShortlist.handler(async ({ input, context, errors }) => {
+		const result = await fillRandomSessionShortlist(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.size,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	});
+
+export const castSessionVotesRoute = protectedProcedure.club.castSessionVotes.handler(
+	async ({ input, context, errors }) => {
+		const result = await castSessionVotes(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.assignments,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const setSessionVoteBlockedRoute = protectedProcedure.club.setSessionVoteBlocked.handler(
+	async ({ input, context, errors }) => {
+		const result = await setSessionVoteBlocked(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.userId,
+			input.voteBlocked,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
 export const clubRouter = {
 	create,
 	update,
@@ -507,4 +583,9 @@ export const clubRouter = {
 	advanceReadingSession: advanceReadingSessionRoute,
 	cancelReadingSession: cancelReadingSessionRoute,
 	abandonReadingSession: abandonReadingSessionRoute,
+	addSessionShortlistItem: addSessionShortlistItemRoute,
+	removeSessionShortlistItem: removeSessionShortlistItemRoute,
+	fillRandomSessionShortlist: fillRandomSessionShortlistRoute,
+	castSessionVotes: castSessionVotesRoute,
+	setSessionVoteBlocked: setSessionVoteBlockedRoute,
 };
