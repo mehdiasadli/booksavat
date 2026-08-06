@@ -146,7 +146,7 @@ async function loadDiscussionState(
 	viewerUserId: string | null | undefined,
 ): Promise<SessionDiscussionState> {
 	const canPost = canPostSessionDiscussion(session.status) && isActiveMember(membership);
-	const canReact = canViewSessionDiscussion(session.status) && isActiveMember(membership);
+	const canReact = canPost;
 	const moderate = canModerateDiscussion(membership);
 
 	const messageRows = await db
