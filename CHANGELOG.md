@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.5.0...booksavat-v0.6.0) (2026-08-06)
+
+
+### Features
+
+* Implement booklist, reading sessions, voting and discussions for clubs ([#35](https://github.com/mehdiasadli/booksavat/issues/35)) ([356a3f8](https://github.com/mehdiasadli/booksavat/commit/356a3f8ac6c7fabfd0222d06b405ef714bb24f3d))
+* Implement club foundation, member management, main club screens ([#26](https://github.com/mehdiasadli/booksavat/issues/26)) ([b2ee4c4](https://github.com/mehdiasadli/booksavat/commit/b2ee4c496f89d874c40498c8e01930d20085a462))
+
 ## [0.5.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.4.0...booksavat-v0.5.0) (2026-08-05)
 
 
