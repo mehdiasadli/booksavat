@@ -3,6 +3,13 @@ import { defineRelations } from "drizzle-orm";
 import { account, session, user, verification } from "@/db/schemas/auth.schema";
 import { club, clubBooklistItem, clubMembership } from "@/db/schemas/club.schema";
 import {
+	clubPost,
+	clubPostAttachment,
+	clubPostComment,
+	clubPostCommentReaction,
+	clubPostReaction,
+} from "@/db/schemas/club-community.schema";
+import {
 	readingSession,
 	sessionDiscussionMessage,
 	sessionDiscussionReaction,
@@ -29,6 +36,11 @@ export const appRelations = defineRelations(
 		club,
 		clubMembership,
 		clubBooklistItem,
+		clubPost,
+		clubPostAttachment,
+		clubPostComment,
+		clubPostReaction,
+		clubPostCommentReaction,
 		readingSession,
 		sessionParticipant,
 		sessionShortlistItem,
@@ -53,6 +65,10 @@ export const appRelations = defineRelations(
 			}),
 			clubMemberships: r.many.clubMembership(),
 			clubBooklistItems: r.many.clubBooklistItem(),
+			clubPosts: r.many.clubPost(),
+			clubPostComments: r.many.clubPostComment(),
+			clubPostReactions: r.many.clubPostReaction(),
+			clubPostCommentReactions: r.many.clubPostCommentReaction(),
 			createdReadingSessions: r.many.readingSession(),
 			sessionParticipations: r.many.sessionParticipant(),
 			sessionShortlistItems: r.many.sessionShortlistItem(),
@@ -119,6 +135,77 @@ export const appRelations = defineRelations(
 			memberships: r.many.clubMembership(),
 			booklistItems: r.many.clubBooklistItem(),
 			readingSessions: r.many.readingSession(),
+			posts: r.many.clubPost(),
+		},
+		clubPost: {
+			club: r.one.club({
+				from: r.clubPost.clubId,
+				to: r.club.id,
+				optional: false,
+			}),
+			author: r.one.user({
+				from: r.clubPost.authorUserId,
+				to: r.user.id,
+			}),
+			relatedSession: r.one.readingSession({
+				from: r.clubPost.relatedSessionId,
+				to: r.readingSession.id,
+			}),
+			attachments: r.many.clubPostAttachment(),
+			comments: r.many.clubPostComment(),
+			reactions: r.many.clubPostReaction(),
+		},
+		clubPostAttachment: {
+			post: r.one.clubPost({
+				from: r.clubPostAttachment.postId,
+				to: r.clubPost.id,
+				optional: false,
+			}),
+		},
+		clubPostComment: {
+			post: r.one.clubPost({
+				from: r.clubPostComment.postId,
+				to: r.clubPost.id,
+				optional: false,
+			}),
+			author: r.one.user({
+				from: r.clubPostComment.authorUserId,
+				to: r.user.id,
+				optional: false,
+			}),
+			parent: r.one.clubPostComment({
+				from: r.clubPostComment.parentId,
+				to: r.clubPostComment.id,
+			}),
+			replies: r.many.clubPostComment({
+				from: r.clubPostComment.id,
+				to: r.clubPostComment.parentId,
+			}),
+			reactions: r.many.clubPostCommentReaction(),
+		},
+		clubPostReaction: {
+			post: r.one.clubPost({
+				from: r.clubPostReaction.postId,
+				to: r.clubPost.id,
+				optional: false,
+			}),
+			user: r.one.user({
+				from: r.clubPostReaction.userId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		clubPostCommentReaction: {
+			comment: r.one.clubPostComment({
+				from: r.clubPostCommentReaction.commentId,
+				to: r.clubPostComment.id,
+				optional: false,
+			}),
+			user: r.one.user({
+				from: r.clubPostCommentReaction.userId,
+				to: r.user.id,
+				optional: false,
+			}),
 		},
 		clubMembership: {
 			club: r.one.club({

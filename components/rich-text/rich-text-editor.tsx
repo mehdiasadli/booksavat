@@ -1,7 +1,18 @@
 "use client";
 
 import { EditorContent, useEditor } from "@tiptap/react";
-import { Bold, Italic, Link2, Quote, Underline as UnderlineIcon } from "lucide-react";
+import {
+	Bold,
+	Heading2,
+	Heading3,
+	Italic,
+	Link2,
+	List,
+	ListOrdered,
+	Quote,
+	Strikethrough,
+	Underline as UnderlineIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -82,10 +93,16 @@ export function RichTextEditor({
 			attributes: {
 				"aria-label": ariaLabel,
 				class: cn(
-					"rich-text-editor max-w-none min-h-28 px-3 py-2 text-sm leading-relaxed focus:outline-none",
+					"rich-text-editor max-w-none px-3 py-2 text-sm leading-relaxed focus:outline-none",
+					editable ? "min-h-28" : "min-h-0 px-0 py-0",
 					"[&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-muted-foreground/40 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground",
 					"[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2",
 					"[&_p]:my-1",
+					"[&_h2]:mt-3 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold",
+					"[&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold",
+					"[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5",
+					"[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5",
+					"[&_s]:line-through",
 					editorClassName,
 				),
 			},
@@ -117,8 +134,8 @@ export function RichTextEditor({
 		return (
 			<div
 				className={cn(
-					"min-h-36 rounded-lg border bg-transparent",
-					readOnly && "border-transparent px-0",
+					"rounded-lg border bg-transparent",
+					readOnly ? "min-h-0 border-transparent px-0" : "min-h-36",
 					className,
 				)}
 			/>
@@ -221,6 +238,41 @@ export function RichTextEditor({
 						label="Underline"
 					>
 						<UnderlineIcon className="size-3.5" />
+					</ToolbarButton>
+					<ToolbarButton
+						pressed={editor.isActive("strike")}
+						onPressedChange={() => editor.chain().focus().toggleStrike().run()}
+						label="Strikethrough"
+					>
+						<Strikethrough className="size-3.5" />
+					</ToolbarButton>
+					<ToolbarButton
+						pressed={editor.isActive("heading", { level: 2 })}
+						onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+						label="Heading 2"
+					>
+						<Heading2 className="size-3.5" />
+					</ToolbarButton>
+					<ToolbarButton
+						pressed={editor.isActive("heading", { level: 3 })}
+						onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+						label="Heading 3"
+					>
+						<Heading3 className="size-3.5" />
+					</ToolbarButton>
+					<ToolbarButton
+						pressed={editor.isActive("bulletList")}
+						onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+						label="Bullet list"
+					>
+						<List className="size-3.5" />
+					</ToolbarButton>
+					<ToolbarButton
+						pressed={editor.isActive("orderedList")}
+						onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+						label="Ordered list"
+					>
+						<ListOrdered className="size-3.5" />
 					</ToolbarButton>
 					<ToolbarButton
 						pressed={editor.isActive("blockquote")}

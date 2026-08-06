@@ -55,3 +55,10 @@ export const DEFAULT_CLUB_BOOKLIST_SETTINGS: ClubBooklistSettings = {
 	defaultShortlistSize: CLUB_DEFAULT_SHORTLIST_SIZE,
 	voteChipsByRole: DEFAULT_VOTE_CHIPS_BY_ROLE,
 };
+
+export {
+	CLUB_CAN_POST_OPTIONS,
+	type ClubCanPost,
+	type ClubCommunitySettings,
+	DEFAULT_CLUB_COMMUNITY_SETTINGS,
+} from "@/lib/clubs/community";

@@ -73,6 +73,14 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 		moderator: chipsToInput(club.booklistSettings.voteChipsByRole.moderator),
 		member: chipsToInput(club.booklistSettings.voteChipsByRole.member),
 	});
+	const [communityEnabled, setCommunityEnabled] = useState(club.communitySettings.communityEnabled);
+	const [canPost, setCanPost] = useState(club.communitySettings.canPost);
+	const [defaultCanPeopleComment, setDefaultCanPeopleComment] = useState(
+		club.communitySettings.defaultCanPeopleComment,
+	);
+	const [defaultCanPeopleReact, setDefaultCanPeopleReact] = useState(
+		club.communitySettings.defaultCanPeopleReact,
+	);
 
 	const save = useMutation({
 		mutationFn: async () => {
@@ -96,6 +104,13 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 				slug: updated.slug,
 				...booklist,
 				voteChipsByRole: parsed,
+			});
+			await client.club.updateCommunitySettings({
+				slug: updated.slug,
+				communityEnabled,
+				canPost,
+				defaultCanPeopleComment,
+				defaultCanPeopleReact,
 			});
 			return updated;
 		},
@@ -205,6 +220,49 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 						<option value="invite_only">Invite only — hidden from search</option>
 					</select>
 				</div>
+
+				<section className="grid gap-4 border-t border-border pt-6">
+					<div className="grid gap-1">
+						<h2 className="font-heading text-lg font-semibold tracking-tight">Community</h2>
+						<p className="text-sm text-muted-foreground text-pretty">
+							Control who can post on the club feed and default comment/reaction permissions for new
+							posts.
+						</p>
+					</div>
+					<PermissionRow
+						id="community-enabled"
+						label="Community feed enabled"
+						checked={communityEnabled}
+						onCheckedChange={setCommunityEnabled}
+					/>
+					<div className="grid gap-2">
+						<Label htmlFor="can-post">Who can post</Label>
+						<select
+							id="can-post"
+							value={canPost}
+							onChange={(event) =>
+								setCanPost(event.target.value as "all_members" | "moderators" | "admin_only")
+							}
+							className="h-9 rounded-md border bg-background px-3 text-sm"
+						>
+							<option value="all_members">All members</option>
+							<option value="moderators">Moderators and admin</option>
+							<option value="admin_only">Admin only</option>
+						</select>
+					</div>
+					<PermissionRow
+						id="default-can-comment"
+						label="New posts allow comments by default"
+						checked={defaultCanPeopleComment}
+						onCheckedChange={setDefaultCanPeopleComment}
+					/>
+					<PermissionRow
+						id="default-can-react"
+						label="New posts allow reactions by default"
+						checked={defaultCanPeopleReact}
+						onCheckedChange={setDefaultCanPeopleReact}
+					/>
+				</section>
 
 				<section className="grid gap-4 border-t border-border pt-6">
 					<div className="grid gap-1">

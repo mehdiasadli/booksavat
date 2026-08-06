@@ -1,6 +1,6 @@
 "use client";
 
-import { BookMarked, CalendarDays, Settings, UserRound, Users } from "lucide-react";
+import { BookMarked, CalendarDays, House, Settings, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -29,7 +29,14 @@ export function ClubSubnav({ club }: ClubSubnavProps) {
 	const base = `/clubs/${club.slug}`;
 
 	const items = [
-		{ href: base, label: "Profile", icon: UserRound, exact: true, show: true },
+		{ href: base, label: "Feed", icon: House, exact: true, show: true },
+		{
+			href: `${base}/about`,
+			label: "About",
+			icon: UserRound,
+			exact: false,
+			show: true,
+		},
 		{
 			href: `${base}/booklist`,
 			label: "Booklist",

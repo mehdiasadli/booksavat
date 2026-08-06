@@ -8,6 +8,19 @@ import {
 	updateBooklistSettings,
 } from "@/lib/clubs/booklist.server";
 import {
+	createCommunityComment,
+	createCommunityPost,
+	deleteCommunityComment,
+	deleteCommunityPost,
+	getCommunityPost,
+	listCommunityFeed,
+	pinCommunityPost,
+	toggleCommunityCommentReaction,
+	toggleCommunityPostReaction,
+	updateCommunityPost,
+	updateCommunitySettings,
+} from "@/lib/clubs/community.server";
+import {
 	acceptInvite,
 	acceptRequest,
 	cancelRequest,
@@ -621,6 +634,169 @@ export const toggleSessionDiscussionReactionRoute =
 		},
 	);
 
+export const updateCommunitySettingsRoute = protectedProcedure.club.updateCommunitySettings.handler(
+	async ({ input, context, errors }) => {
+		const result = await updateCommunitySettings(context.db, context.viewer.user.id, input.slug, {
+			communityEnabled: input.communityEnabled,
+			canPost: input.canPost,
+			defaultCanPeopleComment: input.defaultCanPeopleComment,
+			defaultCanPeopleReact: input.defaultCanPeopleReact,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listCommunityFeedRoute = publicProcedure.club.listCommunityFeed.handler(
+	async ({ input, context, errors }) => {
+		const result = await listCommunityFeed(context.db, input.slug, context.session?.user?.id, {
+			sort: input.sort,
+			topRange: input.topRange,
+			type: input.type,
+			authorRole: input.authorRole,
+			pinnedOnly: input.pinnedOnly,
+			cursor: input.cursor,
+			limit: input.limit,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const getCommunityPostRoute = publicProcedure.club.getCommunityPost.handler(
+	async ({ input, context, errors }) => {
+		const result = await getCommunityPost(
+			context.db,
+			input.slug,
+			input.postSlug,
+			context.session?.user?.id,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const createCommunityPostRoute = protectedProcedure.club.createCommunityPost.handler(
+	async ({ input, context, errors }) => {
+		const result = await createCommunityPost(context.db, context.viewer.user.id, input.slug, {
+			title: input.title,
+			body: input.body,
+			type: input.type,
+			canPeopleComment: input.canPeopleComment,
+			canPeopleReact: input.canPeopleReact,
+			attachments: input.attachments,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const updateCommunityPostRoute = protectedProcedure.club.updateCommunityPost.handler(
+	async ({ input, context, errors }) => {
+		const result = await updateCommunityPost(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.postSlug,
+			{
+				title: input.title,
+				body: input.body,
+				canPeopleComment: input.canPeopleComment,
+				canPeopleReact: input.canPeopleReact,
+				attachments: input.attachments,
+			},
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const deleteCommunityPostRoute = protectedProcedure.club.deleteCommunityPost.handler(
+	async ({ input, context, errors }) => {
+		const result = await deleteCommunityPost(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.postSlug,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const pinCommunityPostRoute = protectedProcedure.club.pinCommunityPost.handler(
+	async ({ input, context, errors }) => {
+		const result = await pinCommunityPost(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.postSlug,
+			input.pinned,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const createCommunityCommentRoute = protectedProcedure.club.createCommunityComment.handler(
+	async ({ input, context, errors }) => {
+		const result = await createCommunityComment(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.postSlug,
+			{ body: input.body, parentId: input.parentId },
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const deleteCommunityCommentRoute = protectedProcedure.club.deleteCommunityComment.handler(
+	async ({ input, context, errors }) => {
+		const result = await deleteCommunityComment(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.postSlug,
+			input.commentId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const toggleCommunityPostReactionRoute =
+	protectedProcedure.club.toggleCommunityPostReaction.handler(
+		async ({ input, context, errors }) => {
+			const result = await toggleCommunityPostReaction(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.postSlug,
+				input.emoji,
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
+export const toggleCommunityCommentReactionRoute =
+	protectedProcedure.club.toggleCommunityCommentReaction.handler(
+		async ({ input, context, errors }) => {
+			const result = await toggleCommunityCommentReaction(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.postSlug,
+				input.commentId,
+				input.emoji,
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
 export const clubRouter = {
 	create,
 	update,
@@ -672,4 +848,15 @@ export const clubRouter = {
 	createSessionDiscussionMessage: createSessionDiscussionMessageRoute,
 	deleteSessionDiscussionMessage: deleteSessionDiscussionMessageRoute,
 	toggleSessionDiscussionReaction: toggleSessionDiscussionReactionRoute,
+	updateCommunitySettings: updateCommunitySettingsRoute,
+	listCommunityFeed: listCommunityFeedRoute,
+	getCommunityPost: getCommunityPostRoute,
+	createCommunityPost: createCommunityPostRoute,
+	updateCommunityPost: updateCommunityPostRoute,
+	deleteCommunityPost: deleteCommunityPostRoute,
+	pinCommunityPost: pinCommunityPostRoute,
+	createCommunityComment: createCommunityCommentRoute,
+	deleteCommunityComment: deleteCommunityCommentRoute,
+	toggleCommunityPostReaction: toggleCommunityPostReactionRoute,
+	toggleCommunityCommentReaction: toggleCommunityCommentReactionRoute,
 };

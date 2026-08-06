@@ -65,6 +65,48 @@ describe("sanitizeRichTextDocument", () => {
 			expect(mark?.attrs?.rel).toContain("noopener");
 		}
 	});
+
+	it("accepts heading level 2 and lists", () => {
+		const result = sanitizeRichTextDocument({
+			type: "doc",
+			content: [
+				{
+					type: "heading",
+					attrs: { level: 2 },
+					content: [{ type: "text", text: "Section" }],
+				},
+				{
+					type: "bulletList",
+					content: [
+						{
+							type: "listItem",
+							content: [
+								{
+									type: "paragraph",
+									content: [{ type: "text", text: "Item", marks: [{ type: "strike" }] }],
+								},
+							],
+						},
+					],
+				},
+			],
+		});
+		expect(result.ok).toBe(true);
+	});
+
+	it("rejects heading level 1", () => {
+		const result = sanitizeRichTextDocument({
+			type: "doc",
+			content: [
+				{
+					type: "heading",
+					attrs: { level: 1 },
+					content: [{ type: "text", text: "Nope" }],
+				},
+			],
+		});
+		expect(result.ok).toBe(false);
+	});
 });
 
 describe("isRichTextEmpty", () => {
