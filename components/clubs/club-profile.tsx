@@ -102,8 +102,13 @@ export function ClubProfile({ initial }: ClubProfileProps) {
 
 	return (
 		<article className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-10 sm:px-6">
-			{(showMembers || showSettings) && (
-				<ClubSubnav slug={club.slug} showMembers={showMembers} showSettings={showSettings} />
+			{(showMembers || showSettings || club.canViewContent) && (
+				<ClubSubnav
+					slug={club.slug}
+					showBooklist={club.canViewContent}
+					showMembers={showMembers}
+					showSettings={showSettings}
+				/>
 			)}
 
 			<header className="grid gap-4">
