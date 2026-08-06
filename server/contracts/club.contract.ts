@@ -53,6 +53,8 @@ export const clubBooklistItemSchema = z.object({
 	id: z.uuid(),
 	workId: z.string(),
 	status: clubBooklistItemStatusSchema,
+	title: z.string(),
+	coverUrl: z.string().nullable(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 	addedBy: z.object({
@@ -61,6 +63,8 @@ export const clubBooklistItemSchema = z.object({
 		name: z.string(),
 		image: z.url().nullable(),
 	}),
+	viewerReadingStatus: z.enum(["reading", "completed", "dnf"]).nullable(),
+	viewerHasFeedback: z.boolean(),
 });
 
 export const clubMemberCardSchema = z.object({

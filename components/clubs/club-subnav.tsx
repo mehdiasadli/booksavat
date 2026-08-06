@@ -8,16 +8,23 @@ import { cn } from "@/lib/utils";
 
 interface ClubSubnavProps {
 	slug: string;
+	showBooklist?: boolean;
 	showMembers: boolean;
 	showSettings: boolean;
 }
 
-export function ClubSubnav({ slug, showMembers, showSettings }: ClubSubnavProps) {
+export function ClubSubnav({
+	slug,
+	showBooklist = false,
+	showMembers,
+	showSettings,
+}: ClubSubnavProps) {
 	const pathname = usePathname();
 	const base = `/clubs/${slug}`;
 
 	const items = [
 		{ href: base, label: "Profile", exact: true },
+		...(showBooklist ? [{ href: `${base}/booklist`, label: "Booklist", exact: false }] : []),
 		...(showMembers ? [{ href: `${base}/members`, label: "Members", exact: false }] : []),
 		...(showSettings ? [{ href: `${base}/settings`, label: "Settings", exact: false }] : []),
 	];
