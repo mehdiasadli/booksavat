@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
 	{ href: "/", label: "Home" },
 	{ href: "/books", label: "Books" },
+	{ href: "/clubs", label: "Clubs" },
 ] as const;
 
 export function SiteHeader() {
