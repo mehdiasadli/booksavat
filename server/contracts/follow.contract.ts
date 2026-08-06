@@ -79,6 +79,27 @@ export const feedItemSchema = z.discriminatedUnion("type", [
 		rating: z.number(),
 		hasReview: z.boolean(),
 	}),
+	z.object({
+		type: z.literal("club_post"),
+		id: z.string(),
+		occurredAt: z.date(),
+		user: z
+			.object({
+				id: z.uuid(),
+				username: z.string(),
+				name: z.string(),
+				image: z.url().nullable(),
+			})
+			.nullable(),
+		club: z.object({
+			id: z.uuid(),
+			name: z.string(),
+			slug: z.string(),
+		}),
+		postSlug: z.string(),
+		title: z.string(),
+		postType: z.enum(["discussion", "announcement", "system"]),
+	}),
 ]);
 
 const usernameInput = z.object({ username: z.string().trim().min(1).max(64) });
@@ -192,14 +213,18 @@ export const listFeedContract = base
 		method: "GET",
 		path: "/follow/feed",
 		tags: ["follow"],
-		summary: "Home activity feed (self + following)",
+		summary: "Home activity feed (self + following + club posts)",
 	})
-	.input(paginationInputSchema)
+	.input(
+		z.object({
+			limit: z.number().int().min(1).max(100).default(20),
+			cursor: z.string().optional(),
+		}),
+	)
 	.output(
 		z.object({
 			items: z.array(feedItemSchema),
-			total: z.number().int().min(0),
-			nextOffset: z.number().int().min(0).nullable(),
+			nextCursor: z.string().nullable(),
 		}),
 	);
 

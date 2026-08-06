@@ -116,7 +116,7 @@ export const searchUsersRoute = publicProcedure.follow.searchUsers.handler(
 export const listFeed = protectedProcedure.follow.listFeed.handler(async ({ input, context }) => {
 	return listHomeFeed(context.db, context.viewer.user.id, {
 		limit: input.limit,
-		offset: input.offset,
+		cursor: input.cursor,
 	});
 });
 

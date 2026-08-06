@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { ClubFeed } from "@/components/clubs/club-feed";
+import { ClubProfile } from "@/components/clubs/club-profile";
 import { getClubPageData } from "@/lib/clubs/queries.server";
 import { APP_NAME } from "@/lib/constants";
 import { buildMetadata } from "@/lib/seo";
 
-interface ClubPageProps {
+interface ClubAboutPageProps {
 	params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: ClubPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: ClubAboutPageProps): Promise<Metadata> {
 	const { slug } = await params;
 	const result = await getClubPageData(slug);
 
@@ -22,14 +22,14 @@ export async function generateMetadata({ params }: ClubPageProps): Promise<Metad
 	}
 
 	return buildMetadata({
-		title: `${result.data.name} · Feed`,
+		title: `${result.data.name} · About`,
 		description: result.data.description ?? `${result.data.name} on ${APP_NAME}`,
-		path: `/clubs/${result.data.slug}`,
+		path: `/clubs/${result.data.slug}/about`,
 		noIndex: result.data.visibility === "invite_only",
 	});
 }
 
-export default async function ClubPage({ params }: ClubPageProps) {
+export default async function ClubAboutPage({ params }: ClubAboutPageProps) {
 	const { slug } = await params;
 	const result = await getClubPageData(slug);
 
@@ -37,5 +37,5 @@ export default async function ClubPage({ params }: ClubPageProps) {
 		notFound();
 	}
 
-	return <ClubFeed initial={result.data} />;
+	return <ClubProfile initial={result.data} />;
 }

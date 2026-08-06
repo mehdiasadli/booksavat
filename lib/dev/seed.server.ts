@@ -6,6 +6,10 @@ import {
 	club,
 	clubBooklistItem,
 	clubMembership,
+	clubPost,
+	clubPostAttachment,
+	clubPostComment,
+	clubPostReaction,
 	feedback,
 	follow,
 	readingLog,
@@ -737,6 +741,152 @@ async function runSeed(): Promise<void> {
 	await seedClubBooklists(ids, now);
 	console.info("[seed] ensuring sample reading sessions…");
 	await seedClubSessions(ids, now);
+	console.info("[seed] ensuring sample community posts…");
+	await seedClubCommunity(ids, now);
+}
+
+async function communityAlreadySeeded(): Promise<boolean> {
+	const [row] = await db
+		.select({ id: clubPost.id })
+		.from(clubPost)
+		.innerJoin(club, eq(club.id, clubPost.clubId))
+		.where(eq(club.slug, "friday_night_readers"))
+		.limit(1);
+	return Boolean(row);
+}
+
+async function seedClubCommunity(ids: Record<SeedUserKey, string>, now: Date) {
+	if (await communityAlreadySeeded()) {
+		console.info("[seed] community skipped — sample posts already exist");
+		return;
+	}
+
+	const [friday] = await db
+		.select({ id: club.id })
+		.from(club)
+		.where(eq(club.slug, "friday_night_readers"))
+		.limit(1);
+	if (!friday) {
+		console.warn("[seed] community skipped — friday club missing");
+		return;
+	}
+
+	const [discussion] = await db
+		.insert(clubPost)
+		.values({
+			clubId: friday.id,
+			authorUserId: ids.alice,
+			type: "discussion",
+			title: "What are we bringing snacks-wise this Friday?",
+			slug: "what_are_we_bringing_snacks_wise_this_friday",
+			body: {
+				type: "doc",
+				content: [
+					{
+						type: "paragraph",
+						content: [
+							{
+								type: "text",
+								text: "I’ll bring sparkling water. Drop your plans below.",
+							},
+						],
+					},
+				],
+			},
+			canPeopleComment: true,
+			canPeopleReact: true,
+			reactionCount: 1,
+			commentCount: 1,
+			replyCount: 1,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.returning();
+
+	const [announcement] = await db
+		.insert(clubPost)
+		.values({
+			clubId: friday.id,
+			authorUserId: ids.alice,
+			type: "announcement",
+			title: "House rules for discussion nights",
+			slug: "house_rules_for_discussion_nights",
+			body: {
+				type: "doc",
+				content: [
+					{
+						type: "paragraph",
+						content: [{ type: "text", text: "Spoilers stay behind a clear heading. Be kind." }],
+					},
+				],
+			},
+			canPeopleComment: true,
+			canPeopleReact: true,
+			pinnedAt: now,
+			createdAt: now,
+			updatedAt: now,
+		})
+		.returning();
+
+	await db.insert(clubPostAttachment).values({
+		postId: discussion.id,
+		kind: "work",
+		workId: SEED_WORKS[0],
+		editionId: null,
+		createdAt: now,
+		updatedAt: now,
+	});
+
+	await db.insert(clubPostReaction).values({
+		postId: discussion.id,
+		userId: ids.cara,
+		emoji: "🔥",
+		createdAt: now,
+		updatedAt: now,
+	});
+
+	const [topComment] = await db
+		.insert(clubPostComment)
+		.values({
+			postId: discussion.id,
+			authorUserId: ids.cara,
+			parentId: null,
+			depth: 0,
+			body: {
+				type: "doc",
+				content: [
+					{
+						type: "paragraph",
+						content: [{ type: "text", text: "I can do hummus and crackers." }],
+					},
+				],
+			},
+			createdAt: now,
+			updatedAt: now,
+		})
+		.returning();
+
+	await db.insert(clubPostComment).values({
+		postId: discussion.id,
+		authorUserId: ids.erin,
+		parentId: topComment.id,
+		depth: 1,
+		body: {
+			type: "doc",
+			content: [
+				{
+					type: "paragraph",
+					content: [{ type: "text", text: "Perfect — I’ll bring fruit." }],
+				},
+			],
+		},
+		createdAt: now,
+		updatedAt: now,
+	});
+
+	console.info(
+		`[seed] community ready — discussion + pinned announcement on /clubs/friday_night_readers (post ${announcement.slug})`,
+	);
 }
 
 /**
