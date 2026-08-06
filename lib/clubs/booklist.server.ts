@@ -1,9 +1,10 @@
 import "server-only";
 
-import { and, asc, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 
 import type { Database } from "@/db";
-import { club, clubBooklistItem, clubMembership, user } from "@/db/schema";
+import { club, clubBooklistItem, clubMembership, feedback, readingLog, user } from "@/db/schema";
+import { coverUrlFromCoverId } from "@/lib/books/covers";
 import { tryWorkId } from "@/lib/books/ids";
 import {
 	canAddToBooklist,
@@ -23,11 +24,16 @@ import {
 	canViewClubContent,
 	type ViewerMembership,
 } from "@/lib/clubs/visibility";
+import { olib } from "@/olib";
+
+export type ViewerReadingStatus = "reading" | "completed" | "dnf";
 
 export type BooklistItemDto = {
 	id: string;
 	workId: string;
 	status: ClubBooklistItemStatus;
+	title: string;
+	coverUrl: string | null;
 	createdAt: Date;
 	updatedAt: Date;
 	addedBy: {
@@ -36,6 +42,8 @@ export type BooklistItemDto = {
 		name: string;
 		image: string | null;
 	};
+	viewerReadingStatus: ViewerReadingStatus | null;
+	viewerHasFeedback: boolean;
 };
 
 type ServiceError = {
@@ -86,19 +94,84 @@ async function requireClubBySlug(db: Database, slug: string) {
 	return row ?? null;
 }
 
-function toItemDto(row: {
-	item: typeof clubBooklistItem.$inferSelect;
-	user: {
-		id: string;
-		username: string;
-		name: string;
-		image: string | null;
-	};
-}): BooklistItemDto {
+async function hydrateWorkPreview(
+	workId: string,
+): Promise<{ title: string; coverUrl: string | null }> {
+	try {
+		const work = await olib.works.get(workId);
+		return {
+			title: work.title?.trim() || "Untitled",
+			coverUrl: coverUrlFromCoverId(work.covers?.[0], "M"),
+		};
+	} catch {
+		return { title: "Unknown work", coverUrl: null };
+	}
+}
+
+async function loadViewerIndicators(
+	db: Database,
+	viewerUserId: string | null | undefined,
+	workIds: string[],
+): Promise<{
+	readingByWork: Map<string, ViewerReadingStatus>;
+	feedbackWorks: Set<string>;
+}> {
+	const readingByWork = new Map<string, ViewerReadingStatus>();
+	const feedbackWorks = new Set<string>();
+	if (!viewerUserId || workIds.length === 0) {
+		return { readingByWork, feedbackWorks };
+	}
+
+	const [logs, feedbackRows] = await Promise.all([
+		db
+			.select({
+				workId: readingLog.workId,
+				status: readingLog.status,
+				updatedAt: readingLog.updatedAt,
+			})
+			.from(readingLog)
+			.where(and(eq(readingLog.userId, viewerUserId), inArray(readingLog.workId, workIds)))
+			.orderBy(desc(readingLog.updatedAt)),
+		db
+			.select({ workId: feedback.workId })
+			.from(feedback)
+			.where(and(eq(feedback.userId, viewerUserId), inArray(feedback.workId, workIds))),
+	]);
+
+	for (const log of logs) {
+		if (!readingByWork.has(log.workId)) {
+			readingByWork.set(log.workId, log.status);
+		}
+	}
+	for (const row of feedbackRows) {
+		feedbackWorks.add(row.workId);
+	}
+
+	return { readingByWork, feedbackWorks };
+}
+
+async function toItemDto(
+	row: {
+		item: typeof clubBooklistItem.$inferSelect;
+		user: {
+			id: string;
+			username: string;
+			name: string;
+			image: string | null;
+		};
+	},
+	indicators: {
+		readingByWork: Map<string, ViewerReadingStatus>;
+		feedbackWorks: Set<string>;
+	},
+): Promise<BooklistItemDto> {
+	const preview = await hydrateWorkPreview(row.item.workId);
 	return {
 		id: row.item.id,
 		workId: row.item.workId,
 		status: row.item.status,
+		title: preview.title,
+		coverUrl: preview.coverUrl,
 		createdAt: row.item.createdAt,
 		updatedAt: row.item.updatedAt,
 		addedBy: {
@@ -107,6 +180,8 @@ function toItemDto(row: {
 			name: row.user.name,
 			image: row.user.image,
 		},
+		viewerReadingStatus: indicators.readingByWork.get(row.item.workId) ?? null,
+		viewerHasFeedback: indicators.feedbackWorks.has(row.item.workId),
 	};
 }
 
@@ -202,7 +277,9 @@ export async function listBooklist(
 		db.select({ value: count() }).from(clubBooklistItem).where(where),
 	]);
 
-	const items = rows.map(toItemDto);
+	const workIds = rows.map((r) => r.item.workId);
+	const indicators = await loadViewerIndicators(db, viewerUserId, workIds);
+	const items = await Promise.all(rows.map((r) => toItemDto(r, indicators)));
 	const total = Number(totalRow[0]?.value ?? 0);
 	const consumed = pagination.offset + items.length;
 
@@ -241,7 +318,10 @@ export async function listBooklistProposals(
 		.where(and(eq(clubBooklistItem.clubId, row.id), eq(clubBooklistItem.status, "proposed")))
 		.orderBy(asc(clubBooklistItem.createdAt));
 
-	return ok({ items: rows.map(toItemDto) });
+	const workIds = rows.map((r) => r.item.workId);
+	const indicators = await loadViewerIndicators(db, viewerUserId, workIds);
+	const items = await Promise.all(rows.map((r) => toItemDto(r, indicators)));
+	return ok({ items });
 }
 
 export async function addOrProposeBooklistItem(
@@ -306,7 +386,8 @@ export async function addOrProposeBooklistItem(
 
 	if (!addedBy) return fail("not_found", "User not found");
 
-	return ok(toItemDto({ item: created, user: addedBy }));
+	const indicators = await loadViewerIndicators(db, viewerUserId, [workId]);
+	return ok(await toItemDto({ item: created, user: addedBy }, indicators));
 }
 
 export async function approveBooklistProposal(
@@ -359,7 +440,8 @@ export async function approveBooklistProposal(
 
 	if (!addedBy) return fail("not_found", "User not found");
 
-	return ok(toItemDto({ item: updated, user: addedBy }));
+	const indicators = await loadViewerIndicators(db, viewerUserId, [workId]);
+	return ok(await toItemDto({ item: updated, user: addedBy }, indicators));
 }
 
 export async function rejectBooklistProposal(
