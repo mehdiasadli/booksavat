@@ -1,14 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Lock, Search, X } from "lucide-react";
+import { Loader2, Lock, Search, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { BookSearchItem } from "@/components/books/book-search-item";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { orpc } from "@/lib/orpc";
@@ -76,12 +75,22 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 		staleTime: 60_000,
 	});
 
+	const clubsQuery = useQuery({
+		...orpc.club.search.queryOptions({
+			input: { q: debouncedQuery, limit: 5, offset: 0 },
+		}),
+		enabled: enabled && open,
+		staleTime: 60_000,
+	});
+
 	const showPanel = open && query.length > 0;
-	const isFetching = booksQuery.isFetching || usersQuery.isFetching;
-	const isError = booksQuery.isError || usersQuery.isError;
+	const isFetching = booksQuery.isFetching || usersQuery.isFetching || clubsQuery.isFetching;
+	const isError = booksQuery.isError || usersQuery.isError || clubsQuery.isError;
 	const books = booksQuery.data?.items ?? [];
 	const users = usersQuery.data?.items ?? [];
-	const empty = enabled && !isFetching && books.length === 0 && users.length === 0;
+	const clubs = clubsQuery.data?.items ?? [];
+	const empty =
+		enabled && !isFetching && books.length === 0 && users.length === 0 && clubs.length === 0;
 
 	function clearAndClose() {
 		setOpen(false);
@@ -102,7 +111,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 					setOpen(true);
 				}}
 				onFocus={() => setOpen(true)}
-				placeholder={compact ? "Search…" : "Search books and people…"}
+				placeholder={compact ? "Search…" : "Search books, people, clubs…"}
 				className="h-9 pr-9 pl-8"
 				role="combobox"
 				aria-expanded={showPanel}
@@ -137,7 +146,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 						<p className="px-3 py-4 text-sm text-muted-foreground">
 							Type at least 2 characters to search.
 						</p>
-					) : isFetching && !booksQuery.data && !usersQuery.data ? (
+					) : isFetching && !booksQuery.data && !usersQuery.data && !clubsQuery.data ? (
 						<div className="space-y-2 p-2">
 							{["a", "b", "c"].map((key) => (
 								<div key={key} className="flex gap-3 px-2 py-2">
@@ -153,10 +162,10 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 						<p className="px-3 py-4 text-sm text-destructive">Search failed. Try again.</p>
 					) : empty ? (
 						<p className="px-3 py-4 text-sm text-muted-foreground">
-							No books or people found for “{debouncedQuery}”.
+							No books, people, or clubs found for “{debouncedQuery}”.
 						</p>
 					) : (
-						<ScrollArea className="max-h-96">
+						<div className="max-h-96 overflow-y-auto overscroll-contain">
 							<div className="flex flex-col gap-0.5 p-1">
 								{isFetching ? (
 									<div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
@@ -191,6 +200,37 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 									</Link>
 								))}
 
+								{clubs.length > 0 ? (
+									<div className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+										Clubs
+									</div>
+								) : null}
+								{clubs.map((club) => (
+									<Link
+										key={club.id}
+										href={`/clubs/${club.slug}`}
+										onClick={clearAndClose}
+										className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/70"
+									>
+										<div className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-muted">
+											<Users className="size-4 text-muted-foreground" aria-hidden />
+										</div>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-medium leading-snug">{club.name}</p>
+											<p className="truncate text-xs text-muted-foreground">
+												@{club.slug}
+												{club.visibility === "private" ? " · Private" : ""}
+											</p>
+										</div>
+										{club.visibility === "private" ? (
+											<Lock
+												className="size-3.5 shrink-0 text-muted-foreground"
+												aria-label="Private"
+											/>
+										) : null}
+									</Link>
+								))}
+
 								{books.length > 0 ? (
 									<div className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
 										Books
@@ -206,7 +246,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 									</p>
 								) : null}
 							</div>
-						</ScrollArea>
+						</div>
 					)}
 				</div>
 			) : null}
