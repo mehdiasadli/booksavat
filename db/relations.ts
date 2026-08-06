@@ -4,6 +4,8 @@ import { account, session, user, verification } from "@/db/schemas/auth.schema";
 import { club, clubBooklistItem, clubMembership } from "@/db/schemas/club.schema";
 import {
 	readingSession,
+	sessionDiscussionMessage,
+	sessionDiscussionReaction,
 	sessionParticipant,
 	sessionShortlistItem,
 	sessionVoteAssignment,
@@ -31,6 +33,8 @@ export const appRelations = defineRelations(
 		sessionParticipant,
 		sessionShortlistItem,
 		sessionVoteAssignment,
+		sessionDiscussionMessage,
+		sessionDiscussionReaction,
 	},
 	(r) => ({
 		user: {
@@ -53,6 +57,8 @@ export const appRelations = defineRelations(
 			sessionParticipations: r.many.sessionParticipant(),
 			sessionShortlistItems: r.many.sessionShortlistItem(),
 			sessionVoteAssignments: r.many.sessionVoteAssignment(),
+			sessionDiscussionMessages: r.many.sessionDiscussionMessage(),
+			sessionDiscussionReactions: r.many.sessionDiscussionReaction(),
 		},
 		session: {
 			user: r.one.user({
@@ -152,6 +158,7 @@ export const appRelations = defineRelations(
 			participants: r.many.sessionParticipant(),
 			shortlistItems: r.many.sessionShortlistItem(),
 			voteAssignments: r.many.sessionVoteAssignment(),
+			discussionMessages: r.many.sessionDiscussionMessage(),
 		},
 		sessionParticipant: {
 			session: r.one.readingSession({
@@ -185,6 +192,39 @@ export const appRelations = defineRelations(
 			}),
 			user: r.one.user({
 				from: r.sessionVoteAssignment.userId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		sessionDiscussionMessage: {
+			session: r.one.readingSession({
+				from: r.sessionDiscussionMessage.sessionId,
+				to: r.readingSession.id,
+				optional: false,
+			}),
+			author: r.one.user({
+				from: r.sessionDiscussionMessage.authorUserId,
+				to: r.user.id,
+				optional: false,
+			}),
+			parent: r.one.sessionDiscussionMessage({
+				from: r.sessionDiscussionMessage.parentId,
+				to: r.sessionDiscussionMessage.id,
+			}),
+			replies: r.many.sessionDiscussionMessage({
+				from: r.sessionDiscussionMessage.id,
+				to: r.sessionDiscussionMessage.parentId,
+			}),
+			reactions: r.many.sessionDiscussionReaction(),
+		},
+		sessionDiscussionReaction: {
+			message: r.one.sessionDiscussionMessage({
+				from: r.sessionDiscussionReaction.messageId,
+				to: r.sessionDiscussionMessage.id,
+				optional: false,
+			}),
+			user: r.one.user({
+				from: r.sessionDiscussionReaction.userId,
 				to: r.user.id,
 				optional: false,
 			}),

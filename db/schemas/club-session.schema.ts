@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+	type AnyPgColumn,
 	boolean,
 	index,
 	integer,
@@ -134,5 +135,54 @@ export const sessionVoteAssignment = pgTable(
 		unique("session_vote_session_user_work_uidx").on(table.sessionId, table.userId, table.workId),
 		index("session_vote_session_id_idx").on(table.sessionId),
 		index("session_vote_user_id_idx").on(table.userId),
+	],
+);
+
+export const sessionDiscussionMessage = pgTable(
+	"session_discussion_message",
+	{
+		id,
+		createdAt,
+		updatedAt,
+
+		sessionId: uuid("session_id")
+			.notNull()
+			.references(() => readingSession.id, { onDelete: "cascade" }),
+		authorUserId: uuid("author_user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		parentId: uuid("parent_id").references((): AnyPgColumn => sessionDiscussionMessage.id, {
+			onDelete: "cascade",
+		}),
+		/** 0 = top-level; replies increase by 1 up to max depth. */
+		depth: integer("depth").default(0).notNull(),
+		body: jsonb("body").$type<Record<string, unknown>>().notNull(),
+	},
+	(table) => [
+		index("session_discussion_session_id_idx").on(table.sessionId),
+		index("session_discussion_parent_id_idx").on(table.parentId),
+		index("session_discussion_author_id_idx").on(table.authorUserId),
+	],
+);
+
+export const sessionDiscussionReaction = pgTable(
+	"session_discussion_reaction",
+	{
+		id,
+		createdAt,
+		updatedAt,
+
+		messageId: uuid("message_id")
+			.notNull()
+			.references(() => sessionDiscussionMessage.id, { onDelete: "cascade" }),
+		userId: uuid("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		emoji: text("emoji").notNull(),
+	},
+	(table) => [
+		unique("session_discussion_reaction_message_user_uidx").on(table.messageId, table.userId),
+		index("session_discussion_reaction_message_id_idx").on(table.messageId),
+		index("session_discussion_reaction_user_id_idx").on(table.userId),
 	],
 );
