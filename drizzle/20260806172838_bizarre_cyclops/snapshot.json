@@ -1,0 +1,3330 @@
+{
+	"version": "8",
+	"dialect": "postgres",
+	"id": "39d030a6-b508-4cb6-a147-1e47c7d37499",
+	"prevIds": ["85d3d783-9ae1-4da8-a194-1ebd0b02e07f"],
+	"ddl": [
+		{
+			"values": ["user", "moderator", "admin"],
+			"name": "user_role",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["active", "proposed"],
+			"name": "club_booklist_item_status",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["admin", "moderator", "member"],
+			"name": "club_member_role",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["active", "invited", "requested"],
+			"name": "club_member_status",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["manual", "random"],
+			"name": "club_shortlist_mode",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["public", "invite_only", "private"],
+			"name": "club_visibility",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": [
+				"proposed",
+				"voting",
+				"pending",
+				"reading",
+				"reviewing",
+				"completed",
+				"cancelled",
+				"abandoned"
+			],
+			"name": "reading_session_status",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["pending", "accepted"],
+			"name": "follow_status",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["reading", "completed", "dnf"],
+			"name": "reading_log_status",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["wishlist", "reading", "completed", "dnf"],
+			"name": "shelf_system_key",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"values": ["private", "followers_only", "public"],
+			"name": "shelf_visibility",
+			"entityType": "enums",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "account",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "session",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "user",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "verification",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "club",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "club_booklist_item",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "club_membership",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "reading_session",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "session_participant",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "session_shortlist_item",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "session_vote_assignment",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "feedback",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "follow",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "reading_log",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "shelf",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"isRlsEnabled": false,
+			"name": "shelf_item",
+			"entityType": "tables",
+			"schema": "public"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "account_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "provider_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "access_token",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "refresh_token",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "id_token",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "access_token_expires_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "refresh_token_expires_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "scope",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "password",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "expires_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "token",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "ip_address",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_agent",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "name",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "username",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "email",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "email_verified",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "image",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "user_role",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'user'",
+			"generated": null,
+			"identity": null,
+			"name": "role",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "is_private",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "user"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "verification"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "verification"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "verification"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "identifier",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "verification"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "value",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "verification"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "expires_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "verification"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "name",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "slug",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "description",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "club_visibility",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'public'",
+			"generated": null,
+			"identity": null,
+			"name": "visibility",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "invite_code",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "true",
+			"generated": null,
+			"identity": null,
+			"name": "mods_can_add",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "members_can_add",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "mods_can_remove",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "members_can_remove",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "true",
+			"generated": null,
+			"identity": null,
+			"name": "mods_can_propose",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "true",
+			"generated": null,
+			"identity": null,
+			"name": "members_can_propose",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "club_shortlist_mode",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'manual'",
+			"generated": null,
+			"identity": null,
+			"name": "shortlist_mode",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "integer",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "10",
+			"generated": null,
+			"identity": null,
+			"name": "default_shortlist_size",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "jsonb",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'{\"admin\":[1,2,3],\"moderator\":[1,2,3],\"member\":[1,2,3]}'",
+			"generated": null,
+			"identity": null,
+			"name": "vote_chips_by_role",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "club_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "work_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "added_by_user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"type": "club_booklist_item_status",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'active'",
+			"generated": null,
+			"identity": null,
+			"name": "status",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "club_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"type": "club_member_role",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'member'",
+			"generated": null,
+			"identity": null,
+			"name": "role",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"type": "club_member_status",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'active'",
+			"generated": null,
+			"identity": null,
+			"name": "status",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "club_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "created_by_user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "reading_session_status",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'proposed'",
+			"generated": null,
+			"identity": null,
+			"name": "status",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "title",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "join_deadline",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "reading_deadline",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "selected_work_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "jsonb",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "vote_chips_by_role",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "session_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "joined_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "vote_blocked",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "session_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "work_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "added_by_user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "session_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"type": "integer",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "points",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "work_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "work_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"type": "numeric(2,1)",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "rating",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"type": "jsonb",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "review",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "follower_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "following_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"type": "follow_status",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'pending'",
+			"generated": null,
+			"identity": null,
+			"name": "status",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "work_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "reading_log_status",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "status",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "started_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "finished_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "is_reread",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "user_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "name",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "slug",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "description",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "shelf_visibility",
+			"typeSchema": "public",
+			"notNull": true,
+			"dimensions": 0,
+			"default": "'private'",
+			"generated": null,
+			"identity": null,
+			"name": "visibility",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "is_system",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "shelf_system_key",
+			"typeSchema": "public",
+			"notNull": false,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "system_key",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "boolean",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "false",
+			"generated": null,
+			"identity": null,
+			"name": "is_ordered",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "integer",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "0",
+			"generated": null,
+			"identity": null,
+			"name": "position",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "pg_catalog.gen_random_uuid()",
+			"generated": null,
+			"identity": null,
+			"name": "id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "now()",
+			"generated": null,
+			"identity": null,
+			"name": "created_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"type": "timestamp",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "updated_at",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"type": "uuid",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "shelf_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"type": "text",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": null,
+			"generated": null,
+			"identity": null,
+			"name": "work_id",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"type": "integer",
+			"typeSchema": null,
+			"notNull": true,
+			"dimensions": 0,
+			"default": "0",
+			"generated": null,
+			"identity": null,
+			"name": "position",
+			"entityType": "columns",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "account_userId_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "session_userId_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "identifier",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "verification_identifier_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "verification"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "visibility",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_visibility_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "name",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_name_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "club_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "status",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_booklist_item_club_status_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "work_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_booklist_item_work_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "added_by_user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_booklist_item_added_by_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "club_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_membership_club_user_uidx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "status",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_membership_user_status_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "club_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "status",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_membership_club_status_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "club_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "role",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "club_membership_club_role_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "club_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "reading_session_club_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "club_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "status",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "reading_session_club_status_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "club_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": true,
+			"where": "\"status\" in ('proposed', 'voting', 'pending', 'reading', 'reviewing')",
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "reading_session_one_live_per_club_uidx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "session_participant_user_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "session_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "session_participant_session_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "session_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "session_shortlist_session_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "work_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "session_shortlist_work_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "session_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "session_vote_session_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "session_vote_user_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "work_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "feedback_user_work_uidx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "work_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "feedback_work_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "feedback_user_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "follower_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "following_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": true,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "follow_follower_following_uidx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "following_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "status",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "follow_following_status_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "follower_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "status",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "follow_follower_status_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "work_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "reading_log_user_work_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "finished_at",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "reading_log_user_finished_at_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "created_at",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "reading_log_user_created_at_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "system_key",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": true,
+			"where": "\"system_key\" is not null",
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "shelf_user_system_key_uidx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "shelf_user_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "user_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "position",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "shelf_user_position_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "shelf_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				},
+				{
+					"value": "position",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "shelf_item_shelf_position_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": [
+				{
+					"value": "work_id",
+					"isExpression": false,
+					"asc": true,
+					"nullsFirst": false,
+					"opclass": null
+				}
+			],
+			"isUnique": false,
+			"where": null,
+			"with": "",
+			"method": "btree",
+			"concurrently": false,
+			"name": "shelf_item_work_id_idx",
+			"entityType": "indexes",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "account_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "account"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "session_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "session"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["club_id"],
+			"schemaTo": "public",
+			"tableTo": "club",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "club_booklist_item_club_id_club_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["added_by_user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "club_booklist_item_added_by_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["club_id"],
+			"schemaTo": "public",
+			"tableTo": "club",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "club_membership_club_id_club_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "club_membership_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "club_membership"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["club_id"],
+			"schemaTo": "public",
+			"tableTo": "club",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "reading_session_club_id_club_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["created_by_user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "reading_session_created_by_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "reading_session"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["session_id"],
+			"schemaTo": "public",
+			"tableTo": "reading_session",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "session_participant_session_id_reading_session_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "session_participant_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["session_id"],
+			"schemaTo": "public",
+			"tableTo": "reading_session",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "session_shortlist_item_session_id_reading_session_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["added_by_user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "session_shortlist_item_added_by_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["session_id"],
+			"schemaTo": "public",
+			"tableTo": "reading_session",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "session_vote_assignment_session_id_reading_session_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "session_vote_assignment_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "feedback_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "feedback"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["follower_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "follow_follower_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["following_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "follow_following_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "follow"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "reading_log_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "reading_log"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["user_id"],
+			"schemaTo": "public",
+			"tableTo": "user",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "shelf_user_id_user_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["shelf_id"],
+			"schemaTo": "public",
+			"tableTo": "shelf",
+			"columnsTo": ["id"],
+			"onUpdate": "NO ACTION",
+			"onDelete": "CASCADE",
+			"name": "shelf_item_shelf_id_shelf_id_fkey",
+			"entityType": "fks",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "account_pkey",
+			"schema": "public",
+			"table": "account",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "session_pkey",
+			"schema": "public",
+			"table": "session",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "user_pkey",
+			"schema": "public",
+			"table": "user",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "verification_pkey",
+			"schema": "public",
+			"table": "verification",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "club_pkey",
+			"schema": "public",
+			"table": "club",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "club_booklist_item_pkey",
+			"schema": "public",
+			"table": "club_booklist_item",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "club_membership_pkey",
+			"schema": "public",
+			"table": "club_membership",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "reading_session_pkey",
+			"schema": "public",
+			"table": "reading_session",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "session_participant_pkey",
+			"schema": "public",
+			"table": "session_participant",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "session_shortlist_item_pkey",
+			"schema": "public",
+			"table": "session_shortlist_item",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "session_vote_assignment_pkey",
+			"schema": "public",
+			"table": "session_vote_assignment",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "feedback_pkey",
+			"schema": "public",
+			"table": "feedback",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "follow_pkey",
+			"schema": "public",
+			"table": "follow",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "reading_log_pkey",
+			"schema": "public",
+			"table": "reading_log",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "shelf_pkey",
+			"schema": "public",
+			"table": "shelf",
+			"entityType": "pks"
+		},
+		{
+			"columns": ["id"],
+			"nameExplicit": false,
+			"name": "shelf_item_pkey",
+			"schema": "public",
+			"table": "shelf_item",
+			"entityType": "pks"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["club_id", "work_id"],
+			"nullsNotDistinct": false,
+			"name": "club_booklist_item_club_work_uidx",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "club_booklist_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["session_id", "user_id"],
+			"nullsNotDistinct": false,
+			"name": "session_participant_session_user_uidx",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "session_participant"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["session_id", "work_id"],
+			"nullsNotDistinct": false,
+			"name": "session_shortlist_session_work_uidx",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "session_shortlist_item"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["session_id", "user_id", "points"],
+			"nullsNotDistinct": false,
+			"name": "session_vote_session_user_points_uidx",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["session_id", "user_id", "work_id"],
+			"nullsNotDistinct": false,
+			"name": "session_vote_session_user_work_uidx",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "session_vote_assignment"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["user_id", "slug"],
+			"nullsNotDistinct": false,
+			"name": "shelf_user_slug_uidx",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "shelf"
+		},
+		{
+			"nameExplicit": true,
+			"columns": ["shelf_id", "work_id"],
+			"nullsNotDistinct": false,
+			"name": "shelf_item_shelf_work_uidx",
+			"entityType": "uniques",
+			"schema": "public",
+			"table": "shelf_item"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["token"],
+			"nullsNotDistinct": false,
+			"name": "session_token_key",
+			"schema": "public",
+			"table": "session",
+			"entityType": "uniques"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["username"],
+			"nullsNotDistinct": false,
+			"name": "user_username_key",
+			"schema": "public",
+			"table": "user",
+			"entityType": "uniques"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["email"],
+			"nullsNotDistinct": false,
+			"name": "user_email_key",
+			"schema": "public",
+			"table": "user",
+			"entityType": "uniques"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["slug"],
+			"nullsNotDistinct": false,
+			"name": "club_slug_key",
+			"schema": "public",
+			"table": "club",
+			"entityType": "uniques"
+		},
+		{
+			"nameExplicit": false,
+			"columns": ["invite_code"],
+			"nullsNotDistinct": false,
+			"name": "club_invite_code_key",
+			"schema": "public",
+			"table": "club",
+			"entityType": "uniques"
+		}
+	],
+	"renames": []
+}

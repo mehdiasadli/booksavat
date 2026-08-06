@@ -1,4 +1,13 @@
 import {
+	addOrProposeBooklistItem,
+	approveBooklistProposal,
+	listBooklist,
+	listBooklistProposals,
+	rejectBooklistProposal,
+	removeBooklistItem,
+	updateBooklistSettings,
+} from "@/lib/clubs/booklist.server";
+import {
 	acceptInvite,
 	acceptRequest,
 	cancelRequest,
@@ -25,6 +34,30 @@ import {
 	transferAdmin,
 	updateClub,
 } from "@/lib/clubs/service.server";
+import {
+	abandonReadingSession,
+	advanceReadingSession,
+	cancelReadingSession,
+	createReadingSession,
+	getReadingSession,
+	joinReadingSession,
+	leaveReadingSession,
+	listReadingSessions,
+} from "@/lib/clubs/session.server";
+import {
+	createSessionDiscussionMessage,
+	deleteSessionDiscussionMessage,
+	getSessionDiscussion,
+	toggleSessionDiscussionReaction,
+} from "@/lib/clubs/session-discussion.server";
+import { setSessionReadingOverride } from "@/lib/clubs/session-reading.server";
+import {
+	addSessionShortlistItem,
+	castSessionVotes,
+	fillRandomSessionShortlist,
+	removeSessionShortlistItem,
+	setSessionVoteBlocked,
+} from "@/lib/clubs/session-voting.server";
 import { protectedProcedure, publicProcedure } from "@/server/procedures";
 
 function mapServiceError(
@@ -268,6 +301,326 @@ export const transferAdminRoute = protectedProcedure.club.transferAdmin.handler(
 	},
 );
 
+export const updateBooklistSettingsRoute = protectedProcedure.club.updateBooklistSettings.handler(
+	async ({ input, context, errors }) => {
+		const { slug, ...patch } = input;
+		const result = await updateBooklistSettings(context.db, context.viewer.user.id, slug, patch);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listBooklistRoute = publicProcedure.club.listBooklist.handler(
+	async ({ input, context, errors }) => {
+		const result = await listBooklist(context.db, input.slug, context.session?.user?.id, {
+			limit: input.limit,
+			offset: input.offset,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listBooklistProposalsRoute = protectedProcedure.club.listBooklistProposals.handler(
+	async ({ input, context, errors }) => {
+		const result = await listBooklistProposals(context.db, input.slug, context.viewer.user.id);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const addBooklistItemRoute = protectedProcedure.club.addBooklistItem.handler(
+	async ({ input, context, errors }) => {
+		const result = await addOrProposeBooklistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const approveBooklistProposalRoute = protectedProcedure.club.approveBooklistProposal.handler(
+	async ({ input, context, errors }) => {
+		const result = await approveBooklistProposal(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const rejectBooklistProposalRoute = protectedProcedure.club.rejectBooklistProposal.handler(
+	async ({ input, context, errors }) => {
+		const result = await rejectBooklistProposal(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const removeBooklistItemRoute = protectedProcedure.club.removeBooklistItem.handler(
+	async ({ input, context, errors }) => {
+		const result = await removeBooklistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const createReadingSessionRoute = protectedProcedure.club.createReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const { slug, ...body } = input;
+		const result = await createReadingSession(context.db, context.viewer.user.id, slug, body);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listReadingSessionsRoute = publicProcedure.club.listReadingSessions.handler(
+	async ({ input, context, errors }) => {
+		const result = await listReadingSessions(context.db, input.slug, context.session?.user?.id, {
+			limit: input.limit,
+			offset: input.offset,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const getReadingSessionRoute = publicProcedure.club.getReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await getReadingSession(
+			context.db,
+			input.slug,
+			input.sessionId,
+			context.session?.user?.id,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const joinReadingSessionRoute = protectedProcedure.club.joinReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await joinReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const leaveReadingSessionRoute = protectedProcedure.club.leaveReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await leaveReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const advanceReadingSessionRoute = protectedProcedure.club.advanceReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await advanceReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			{ selectedWorkId: input.selectedWorkId },
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const cancelReadingSessionRoute = protectedProcedure.club.cancelReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await cancelReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const abandonReadingSessionRoute = protectedProcedure.club.abandonReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await abandonReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const addSessionShortlistItemRoute = protectedProcedure.club.addSessionShortlistItem.handler(
+	async ({ input, context, errors }) => {
+		const result = await addSessionShortlistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const removeSessionShortlistItemRoute =
+	protectedProcedure.club.removeSessionShortlistItem.handler(async ({ input, context, errors }) => {
+		const result = await removeSessionShortlistItem(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	});
+
+export const fillRandomSessionShortlistRoute =
+	protectedProcedure.club.fillRandomSessionShortlist.handler(async ({ input, context, errors }) => {
+		const result = await fillRandomSessionShortlist(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.size,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	});
+
+export const castSessionVotesRoute = protectedProcedure.club.castSessionVotes.handler(
+	async ({ input, context, errors }) => {
+		const result = await castSessionVotes(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.assignments,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const setSessionVoteBlockedRoute = protectedProcedure.club.setSessionVoteBlocked.handler(
+	async ({ input, context, errors }) => {
+		const result = await setSessionVoteBlocked(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			input.userId,
+			input.voteBlocked,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const setSessionReadingOverrideRoute =
+	protectedProcedure.club.setSessionReadingOverride.handler(async ({ input, context, errors }) => {
+		const result = await setSessionReadingOverride(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			{ userId: input.userId, status: input.status },
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	});
+
+export const getSessionDiscussionRoute = publicProcedure.club.getSessionDiscussion.handler(
+	async ({ input, context, errors }) => {
+		const result = await getSessionDiscussion(
+			context.db,
+			input.slug,
+			input.sessionId,
+			context.session?.user?.id,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const createSessionDiscussionMessageRoute =
+	protectedProcedure.club.createSessionDiscussionMessage.handler(
+		async ({ input, context, errors }) => {
+			const result = await createSessionDiscussionMessage(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.sessionId,
+				{ parentId: input.parentId, body: input.body },
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
+export const deleteSessionDiscussionMessageRoute =
+	protectedProcedure.club.deleteSessionDiscussionMessage.handler(
+		async ({ input, context, errors }) => {
+			const result = await deleteSessionDiscussionMessage(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.sessionId,
+				input.messageId,
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
+export const toggleSessionDiscussionReactionRoute =
+	protectedProcedure.club.toggleSessionDiscussionReaction.handler(
+		async ({ input, context, errors }) => {
+			const result = await toggleSessionDiscussionReaction(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.sessionId,
+				input.messageId,
+				input.emoji,
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
 export const clubRouter = {
 	create,
 	update,
@@ -294,4 +647,29 @@ export const clubRouter = {
 	removeMember: removeMemberRoute,
 	leave,
 	transferAdmin: transferAdminRoute,
+	updateBooklistSettings: updateBooklistSettingsRoute,
+	listBooklist: listBooklistRoute,
+	listBooklistProposals: listBooklistProposalsRoute,
+	addBooklistItem: addBooklistItemRoute,
+	approveBooklistProposal: approveBooklistProposalRoute,
+	rejectBooklistProposal: rejectBooklistProposalRoute,
+	removeBooklistItem: removeBooklistItemRoute,
+	createReadingSession: createReadingSessionRoute,
+	listReadingSessions: listReadingSessionsRoute,
+	getReadingSession: getReadingSessionRoute,
+	joinReadingSession: joinReadingSessionRoute,
+	leaveReadingSession: leaveReadingSessionRoute,
+	advanceReadingSession: advanceReadingSessionRoute,
+	cancelReadingSession: cancelReadingSessionRoute,
+	abandonReadingSession: abandonReadingSessionRoute,
+	addSessionShortlistItem: addSessionShortlistItemRoute,
+	removeSessionShortlistItem: removeSessionShortlistItemRoute,
+	fillRandomSessionShortlist: fillRandomSessionShortlistRoute,
+	castSessionVotes: castSessionVotesRoute,
+	setSessionVoteBlocked: setSessionVoteBlockedRoute,
+	setSessionReadingOverride: setSessionReadingOverrideRoute,
+	getSessionDiscussion: getSessionDiscussionRoute,
+	createSessionDiscussionMessage: createSessionDiscussionMessageRoute,
+	deleteSessionDiscussionMessage: deleteSessionDiscussionMessageRoute,
+	toggleSessionDiscussionReaction: toggleSessionDiscussionReactionRoute,
 };
