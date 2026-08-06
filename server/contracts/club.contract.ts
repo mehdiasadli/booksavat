@@ -765,6 +765,121 @@ export const setSessionReadingOverrideContract = base
 	)
 	.output(sessionReadingStateSchema);
 
+const richTextDocumentSchema = z.record(z.string(), z.unknown());
+
+export const sessionDiscussionReactionSchema = z.object({
+	emoji: z.string(),
+	count: z.number().int().min(0),
+	reactedByViewer: z.boolean(),
+});
+
+export type SessionDiscussionMessageSchema = {
+	id: string;
+	sessionId: string;
+	parentId: string | null;
+	depth: number;
+	body: Record<string, unknown>;
+	createdAt: Date;
+	updatedAt: Date;
+	author: {
+		id: string;
+		username: string;
+		name: string;
+		image: string | null;
+	};
+	reactions: z.infer<typeof sessionDiscussionReactionSchema>[];
+	canDelete: boolean;
+	canReply: boolean;
+	replies: SessionDiscussionMessageSchema[];
+};
+
+export const sessionDiscussionMessageSchema: z.ZodType<SessionDiscussionMessageSchema> = z.lazy(
+	() =>
+		z.object({
+			id: z.uuid(),
+			sessionId: z.uuid(),
+			parentId: z.uuid().nullable(),
+			depth: z.number().int().min(0).max(5),
+			body: richTextDocumentSchema,
+			createdAt: z.date(),
+			updatedAt: z.date(),
+			author: z.object({
+				id: z.uuid(),
+				username: z.string(),
+				name: z.string(),
+				image: z.url().nullable(),
+			}),
+			reactions: z.array(sessionDiscussionReactionSchema),
+			canDelete: z.boolean(),
+			canReply: z.boolean(),
+			replies: z.array(sessionDiscussionMessageSchema),
+		}),
+);
+
+export const sessionDiscussionStateSchema = z.object({
+	canPost: z.boolean(),
+	canReact: z.boolean(),
+	readOnly: z.boolean(),
+	maxDepth: z.number().int().min(0),
+	reactionEmojis: z.array(z.string()),
+	messages: z.array(sessionDiscussionMessageSchema),
+	messageCount: z.number().int().min(0),
+});
+
+export const getSessionDiscussionContract = base
+	.route({
+		method: "GET",
+		path: "/club/{slug}/sessions/{sessionId}/discussion",
+		tags: ["club"],
+		summary: "Get the session discussion thread",
+	})
+	.input(sessionIdInput)
+	.output(sessionDiscussionStateSchema);
+
+export const createSessionDiscussionMessageContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/discussion",
+		tags: ["club"],
+		summary: "Post a session discussion message or reply",
+	})
+	.input(
+		sessionIdInput.extend({
+			parentId: z.uuid().nullable().optional(),
+			body: richTextDocumentSchema,
+		}),
+	)
+	.output(sessionDiscussionStateSchema);
+
+export const deleteSessionDiscussionMessageContract = base
+	.route({
+		method: "DELETE",
+		path: "/club/{slug}/sessions/{sessionId}/discussion/{messageId}",
+		tags: ["club"],
+		summary: "Delete a session discussion message",
+	})
+	.input(
+		sessionIdInput.extend({
+			messageId: z.uuid(),
+		}),
+	)
+	.output(sessionDiscussionStateSchema);
+
+export const toggleSessionDiscussionReactionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/discussion/{messageId}/reactions",
+		tags: ["club"],
+		summary: "Toggle a reaction on a discussion message",
+	})
+	.input(
+		sessionIdInput.extend({
+			messageId: z.uuid(),
+			emoji: z.string().min(1).max(16),
+		}),
+	)
+	.output(sessionDiscussionStateSchema);
+
 export const clubContract = {
 	create: createClubContract,
 	update: updateClubContract,
@@ -812,4 +927,8 @@ export const clubContract = {
 	castSessionVotes: castSessionVotesContract,
 	setSessionVoteBlocked: setSessionVoteBlockedContract,
 	setSessionReadingOverride: setSessionReadingOverrideContract,
+	getSessionDiscussion: getSessionDiscussionContract,
+	createSessionDiscussionMessage: createSessionDiscussionMessageContract,
+	deleteSessionDiscussionMessage: deleteSessionDiscussionMessageContract,
+	toggleSessionDiscussionReaction: toggleSessionDiscussionReactionContract,
 };

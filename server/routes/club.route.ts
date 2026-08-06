@@ -44,6 +44,12 @@ import {
 	leaveReadingSession,
 	listReadingSessions,
 } from "@/lib/clubs/session.server";
+import {
+	createSessionDiscussionMessage,
+	deleteSessionDiscussionMessage,
+	getSessionDiscussion,
+	toggleSessionDiscussionReaction,
+} from "@/lib/clubs/session-discussion.server";
 import { setSessionReadingOverride } from "@/lib/clubs/session-reading.server";
 import {
 	addSessionShortlistItem,
@@ -556,6 +562,65 @@ export const setSessionReadingOverrideRoute =
 		return result.data;
 	});
 
+export const getSessionDiscussionRoute = publicProcedure.club.getSessionDiscussion.handler(
+	async ({ input, context, errors }) => {
+		const result = await getSessionDiscussion(
+			context.db,
+			input.slug,
+			input.sessionId,
+			context.session?.user?.id,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const createSessionDiscussionMessageRoute =
+	protectedProcedure.club.createSessionDiscussionMessage.handler(
+		async ({ input, context, errors }) => {
+			const result = await createSessionDiscussionMessage(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.sessionId,
+				{ parentId: input.parentId, body: input.body },
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
+export const deleteSessionDiscussionMessageRoute =
+	protectedProcedure.club.deleteSessionDiscussionMessage.handler(
+		async ({ input, context, errors }) => {
+			const result = await deleteSessionDiscussionMessage(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.sessionId,
+				input.messageId,
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
+export const toggleSessionDiscussionReactionRoute =
+	protectedProcedure.club.toggleSessionDiscussionReaction.handler(
+		async ({ input, context, errors }) => {
+			const result = await toggleSessionDiscussionReaction(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.sessionId,
+				input.messageId,
+				input.emoji,
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
 export const clubRouter = {
 	create,
 	update,
@@ -603,4 +668,8 @@ export const clubRouter = {
 	castSessionVotes: castSessionVotesRoute,
 	setSessionVoteBlocked: setSessionVoteBlockedRoute,
 	setSessionReadingOverride: setSessionReadingOverrideRoute,
+	getSessionDiscussion: getSessionDiscussionRoute,
+	createSessionDiscussionMessage: createSessionDiscussionMessageRoute,
+	deleteSessionDiscussionMessage: deleteSessionDiscussionMessageRoute,
+	toggleSessionDiscussionReaction: toggleSessionDiscussionReactionRoute,
 };
