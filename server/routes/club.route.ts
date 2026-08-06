@@ -34,6 +34,16 @@ import {
 	transferAdmin,
 	updateClub,
 } from "@/lib/clubs/service.server";
+import {
+	abandonReadingSession,
+	advanceReadingSession,
+	cancelReadingSession,
+	createReadingSession,
+	getReadingSession,
+	joinReadingSession,
+	leaveReadingSession,
+	listReadingSessions,
+} from "@/lib/clubs/session.server";
 import { protectedProcedure, publicProcedure } from "@/server/procedures";
 
 function mapServiceError(
@@ -357,6 +367,105 @@ export const removeBooklistItemRoute = protectedProcedure.club.removeBooklistIte
 	},
 );
 
+export const createReadingSessionRoute = protectedProcedure.club.createReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const { slug, ...body } = input;
+		const result = await createReadingSession(context.db, context.viewer.user.id, slug, body);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listReadingSessionsRoute = publicProcedure.club.listReadingSessions.handler(
+	async ({ input, context, errors }) => {
+		const result = await listReadingSessions(context.db, input.slug, context.session?.user?.id, {
+			limit: input.limit,
+			offset: input.offset,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const getReadingSessionRoute = publicProcedure.club.getReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await getReadingSession(
+			context.db,
+			input.slug,
+			input.sessionId,
+			context.session?.user?.id,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const joinReadingSessionRoute = protectedProcedure.club.joinReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await joinReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const leaveReadingSessionRoute = protectedProcedure.club.leaveReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await leaveReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const advanceReadingSessionRoute = protectedProcedure.club.advanceReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await advanceReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+			{ selectedWorkId: input.selectedWorkId },
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const cancelReadingSessionRoute = protectedProcedure.club.cancelReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await cancelReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const abandonReadingSessionRoute = protectedProcedure.club.abandonReadingSession.handler(
+	async ({ input, context, errors }) => {
+		const result = await abandonReadingSession(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.sessionId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
 export const clubRouter = {
 	create,
 	update,
@@ -390,4 +499,12 @@ export const clubRouter = {
 	approveBooklistProposal: approveBooklistProposalRoute,
 	rejectBooklistProposal: rejectBooklistProposalRoute,
 	removeBooklistItem: removeBooklistItemRoute,
+	createReadingSession: createReadingSessionRoute,
+	listReadingSessions: listReadingSessionsRoute,
+	getReadingSession: getReadingSessionRoute,
+	joinReadingSession: joinReadingSessionRoute,
+	leaveReadingSession: leaveReadingSessionRoute,
+	advanceReadingSession: advanceReadingSessionRoute,
+	cancelReadingSession: cancelReadingSessionRoute,
+	abandonReadingSession: abandonReadingSessionRoute,
 };
