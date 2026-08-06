@@ -1,0 +1,1 @@
+ALTER TABLE "session_participant" ADD COLUMN "reading_status_override" "reading_log_status";
