@@ -128,6 +128,7 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 			<ClubSubnav
 				slug={club.slug}
 				showBooklist={club.canViewContent}
+				showSessions={club.canViewContent}
 				showMembers={club.canViewContent}
 				showSettings
 			/>

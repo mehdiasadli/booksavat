@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 interface ClubSubnavProps {
 	slug: string;
 	showBooklist?: boolean;
+	showSessions?: boolean;
 	showMembers: boolean;
 	showSettings: boolean;
 }
@@ -16,6 +17,7 @@ interface ClubSubnavProps {
 export function ClubSubnav({
 	slug,
 	showBooklist = false,
+	showSessions = false,
 	showMembers,
 	showSettings,
 }: ClubSubnavProps) {
@@ -25,6 +27,7 @@ export function ClubSubnav({
 	const items = [
 		{ href: base, label: "Profile", exact: true },
 		...(showBooklist ? [{ href: `${base}/booklist`, label: "Booklist", exact: false }] : []),
+		...(showSessions ? [{ href: `${base}/sessions`, label: "Sessions", exact: false }] : []),
 		...(showMembers ? [{ href: `${base}/members`, label: "Members", exact: false }] : []),
 		...(showSettings ? [{ href: `${base}/settings`, label: "Settings", exact: false }] : []),
 	];

@@ -47,6 +47,47 @@ export const clubDetailSchema = clubSummarySchema.extend({
 	canProposeToBooklist: z.boolean(),
 	canRemoveFromBooklist: z.boolean(),
 	canModerateBooklistProposals: z.boolean(),
+	canCreateSession: z.boolean(),
+	canManageSessions: z.boolean(),
+});
+
+export const readingSessionStatusSchema = z.enum([
+	"proposed",
+	"voting",
+	"pending",
+	"reading",
+	"reviewing",
+	"completed",
+	"cancelled",
+	"abandoned",
+]);
+
+export const readingSessionSummarySchema = z.object({
+	id: z.uuid(),
+	clubId: z.uuid(),
+	status: readingSessionStatusSchema,
+	title: z.string().nullable(),
+	joinDeadline: z.date(),
+	readingDeadline: z.date().nullable(),
+	selectedWorkId: z.string().nullable(),
+	participantCount: z.number().int().min(0),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+});
+
+export const readingSessionDetailSchema = readingSessionSummarySchema.extend({
+	viewerJoined: z.boolean(),
+	canJoin: z.boolean(),
+	canLeave: z.boolean(),
+	canAdvance: z.boolean(),
+	canCancel: z.boolean(),
+	canAbandon: z.boolean(),
+	createdBy: z.object({
+		id: z.uuid(),
+		username: z.string(),
+		name: z.string(),
+		image: z.url().nullable(),
+	}),
 });
 
 export const clubBooklistItemSchema = z.object({
@@ -459,6 +500,102 @@ export const removeBooklistItemContract = base
 	.input(workIdInput)
 	.output(z.object({ ok: z.literal(true) }));
 
+const sessionIdInput = z.object({
+	slug: z.string().trim().min(1).max(64),
+	sessionId: z.uuid(),
+});
+
+export const createReadingSessionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions",
+		tags: ["club"],
+		summary: "Create a reading session",
+	})
+	.input(
+		z.object({
+			slug: z.string().trim().min(1).max(64),
+			title: z.string().trim().max(120).nullable().optional(),
+			joinDeadline: z.coerce.date(),
+			readingDeadline: z.coerce.date().nullable().optional(),
+		}),
+	)
+	.output(readingSessionDetailSchema);
+
+export const listReadingSessionsContract = base
+	.route({
+		method: "GET",
+		path: "/club/{slug}/sessions",
+		tags: ["club"],
+		summary: "List reading sessions for a club",
+	})
+	.input(paginationInputSchema.merge(slugInput))
+	.output(paginated(readingSessionSummarySchema));
+
+export const getReadingSessionContract = base
+	.route({
+		method: "GET",
+		path: "/club/{slug}/sessions/{sessionId}",
+		tags: ["club"],
+		summary: "Get a reading session",
+	})
+	.input(sessionIdInput)
+	.output(readingSessionDetailSchema);
+
+export const joinReadingSessionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/join",
+		tags: ["club"],
+		summary: "Join a reading session",
+	})
+	.input(sessionIdInput)
+	.output(readingSessionDetailSchema);
+
+export const leaveReadingSessionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/leave",
+		tags: ["club"],
+		summary: "Leave a reading session",
+	})
+	.input(sessionIdInput)
+	.output(readingSessionDetailSchema);
+
+export const advanceReadingSessionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/advance",
+		tags: ["club"],
+		summary: "Advance a reading session to the next stage",
+	})
+	.input(
+		sessionIdInput.extend({
+			selectedWorkId: z.string().trim().min(1).max(64).optional(),
+		}),
+	)
+	.output(readingSessionDetailSchema);
+
+export const cancelReadingSessionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/cancel",
+		tags: ["club"],
+		summary: "Cancel a reading session",
+	})
+	.input(sessionIdInput)
+	.output(readingSessionDetailSchema);
+
+export const abandonReadingSessionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/abandon",
+		tags: ["club"],
+		summary: "Abandon a reading session",
+	})
+	.input(sessionIdInput)
+	.output(readingSessionDetailSchema);
+
 export const clubContract = {
 	create: createClubContract,
 	update: updateClubContract,
@@ -492,4 +629,12 @@ export const clubContract = {
 	approveBooklistProposal: approveBooklistProposalContract,
 	rejectBooklistProposal: rejectBooklistProposalContract,
 	removeBooklistItem: removeBooklistItemContract,
+	createReadingSession: createReadingSessionContract,
+	listReadingSessions: listReadingSessionsContract,
+	getReadingSession: getReadingSessionContract,
+	joinReadingSession: joinReadingSessionContract,
+	leaveReadingSession: leaveReadingSessionContract,
+	advanceReadingSession: advanceReadingSessionContract,
+	cancelReadingSession: cancelReadingSessionContract,
+	abandonReadingSession: abandonReadingSessionContract,
 };

@@ -14,6 +14,7 @@ import {
 	type ClubMemberStatus,
 	type ClubVisibility,
 } from "@/lib/clubs/constants";
+import { clubSessionCapabilities } from "@/lib/clubs/session.server";
 import {
 	canDiscoverClub,
 	canInvite,
@@ -57,6 +58,8 @@ export type ClubDetail = ClubSummary & {
 	canProposeToBooklist: boolean;
 	canRemoveFromBooklist: boolean;
 	canModerateBooklistProposals: boolean;
+	canCreateSession: boolean;
+	canManageSessions: boolean;
 };
 
 export type MemberCard = {
@@ -146,6 +149,7 @@ async function toDetail(
 	const inviteAllowed = canInvite(membership);
 	const booklistSettings = clubBooklistSettingsDto(row);
 	const booklistCaps = clubBooklistCapabilities(membership, booklistSettings);
+	const sessionCaps = clubSessionCapabilities(membership);
 
 	return {
 		...summary,
@@ -157,6 +161,7 @@ async function toDetail(
 		canModerateRequests: canModerateRequests(membership),
 		booklistSettings,
 		...booklistCaps,
+		...sessionCaps,
 	};
 }
 

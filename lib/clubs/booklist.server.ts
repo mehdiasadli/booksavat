@@ -185,16 +185,13 @@ async function toItemDto(
 	};
 }
 
-/**
- * Session-based removal locks land in a later PR.
- * Stub always returns unlocked so booklist API is usable now.
- */
 export async function isBooklistWorkRemovalLocked(
-	_db: Database,
-	_clubId: string,
-	_workId: string,
+	db: Database,
+	clubId: string,
+	workId: string,
 ): Promise<boolean> {
-	return false;
+	const { isWorkLockedByLiveSession } = await import("@/lib/clubs/session.server");
+	return isWorkLockedByLiveSession(db, clubId, workId);
 }
 
 export async function updateBooklistSettings(
