@@ -2,7 +2,12 @@ import { defineRelations } from "drizzle-orm";
 
 import { account, session, user, verification } from "@/db/schemas/auth.schema";
 import { club, clubBooklistItem, clubMembership } from "@/db/schemas/club.schema";
-import { readingSession, sessionParticipant } from "@/db/schemas/club-session.schema";
+import {
+	readingSession,
+	sessionParticipant,
+	sessionShortlistItem,
+	sessionVoteAssignment,
+} from "@/db/schemas/club-session.schema";
 import { feedback } from "@/db/schemas/feedback.schema";
 import { follow } from "@/db/schemas/follow.schema";
 import { readingLog } from "@/db/schemas/reading-log.schema";
@@ -24,6 +29,8 @@ export const appRelations = defineRelations(
 		clubBooklistItem,
 		readingSession,
 		sessionParticipant,
+		sessionShortlistItem,
+		sessionVoteAssignment,
 	},
 	(r) => ({
 		user: {
@@ -44,6 +51,8 @@ export const appRelations = defineRelations(
 			clubBooklistItems: r.many.clubBooklistItem(),
 			createdReadingSessions: r.many.readingSession(),
 			sessionParticipations: r.many.sessionParticipant(),
+			sessionShortlistItems: r.many.sessionShortlistItem(),
+			sessionVoteAssignments: r.many.sessionVoteAssignment(),
 		},
 		session: {
 			user: r.one.user({
@@ -141,6 +150,8 @@ export const appRelations = defineRelations(
 				optional: false,
 			}),
 			participants: r.many.sessionParticipant(),
+			shortlistItems: r.many.sessionShortlistItem(),
+			voteAssignments: r.many.sessionVoteAssignment(),
 		},
 		sessionParticipant: {
 			session: r.one.readingSession({
@@ -150,6 +161,30 @@ export const appRelations = defineRelations(
 			}),
 			user: r.one.user({
 				from: r.sessionParticipant.userId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		sessionShortlistItem: {
+			session: r.one.readingSession({
+				from: r.sessionShortlistItem.sessionId,
+				to: r.readingSession.id,
+				optional: false,
+			}),
+			addedBy: r.one.user({
+				from: r.sessionShortlistItem.addedByUserId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		sessionVoteAssignment: {
+			session: r.one.readingSession({
+				from: r.sessionVoteAssignment.sessionId,
+				to: r.readingSession.id,
+				optional: false,
+			}),
+			user: r.one.user({
+				from: r.sessionVoteAssignment.userId,
 				to: r.user.id,
 				optional: false,
 			}),

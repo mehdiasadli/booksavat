@@ -63,12 +63,15 @@ export function canAbandonSession(status: ReadingSessionStatus): boolean {
 }
 
 /**
- * Advancing voting → pending requires a selected work (admin pick until voting PR).
- * Other advances do not.
+ * Advancing voting → pending requires a resolved selected work (plurality winner
+ * or admin/mod tie-break pick among leaders).
  */
 export function advanceRequiresSelectedWork(from: ReadingSessionStatus): boolean {
 	return from === "voting";
 }
+
+/** Minimum shortlist size before opening voting. */
+export const SESSION_SHORTLIST_MIN = 2;
 
 export function selectedWorkRequiredForStatus(status: ReadingSessionStatus): boolean {
 	return status === "pending" || status === "reading" || status === "reviewing";
