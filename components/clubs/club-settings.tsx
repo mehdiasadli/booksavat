@@ -15,10 +15,16 @@ import type {
 	ClubBooklistSettings,
 	ClubShortlistMode,
 	ClubVisibility,
+	VoteChipsByRole,
 } from "@/lib/clubs/constants";
+import { parseChipListInput } from "@/lib/clubs/session-voting";
 import { client, orpc } from "@/lib/orpc";
 import { slugify } from "@/lib/slugify";
 import type { ClubDetail } from "@/server/contracts";
+
+function chipsToInput(chips: number[]): string {
+	return chips.join(", ");
+}
 
 interface ClubSettingsProps {
 	initial: ClubDetail;
@@ -62,9 +68,23 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 	const [visibility, setVisibility] = useState<ClubVisibility>(club.visibility);
 	const [inviteCode, setInviteCode] = useState(club.inviteCode);
 	const [booklist, setBooklist] = useState<ClubBooklistSettings>(club.booklistSettings);
+	const [chipInputs, setChipInputs] = useState({
+		admin: chipsToInput(club.booklistSettings.voteChipsByRole.admin),
+		moderator: chipsToInput(club.booklistSettings.voteChipsByRole.moderator),
+		member: chipsToInput(club.booklistSettings.voteChipsByRole.member),
+	});
 
 	const save = useMutation({
 		mutationFn: async () => {
+			const parsed: VoteChipsByRole = {
+				admin: parseChipListInput(chipInputs.admin) ?? [],
+				moderator: parseChipListInput(chipInputs.moderator) ?? [],
+				member: parseChipListInput(chipInputs.member) ?? [],
+			};
+			if (!parsed.admin.length || !parsed.moderator.length || !parsed.member.length) {
+				throw new Error("Vote chips must be comma-separated integers per role");
+			}
+
 			const updated = await client.club.update({
 				slug: club.slug,
 				name,
@@ -75,6 +95,7 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 			await client.club.updateBooklistSettings({
 				slug: updated.slug,
 				...booklist,
+				voteChipsByRole: parsed,
 			});
 			return updated;
 		},
@@ -300,6 +321,28 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 								}
 							/>
 						</div>
+					</div>
+
+					<div className="grid gap-2">
+						<p className="text-sm font-medium">Default vote chips (per role)</p>
+						<p className="text-xs text-muted-foreground">
+							Comma-separated unique points. Snapshotted onto each session when voting opens.
+						</p>
+						{(["admin", "moderator", "member"] as const).map((role) => (
+							<div key={role} className="grid gap-1.5 sm:grid-cols-[7rem_1fr] sm:items-center">
+								<Label htmlFor={`chips-${role}`} className="capitalize">
+									{role}
+								</Label>
+								<Input
+									id={`chips-${role}`}
+									value={chipInputs[role]}
+									onChange={(event) =>
+										setChipInputs((prev) => ({ ...prev, [role]: event.target.value }))
+									}
+									placeholder="1, 2, 3"
+								/>
+							</div>
+						))}
 					</div>
 				</section>
 
