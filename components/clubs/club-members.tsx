@@ -132,6 +132,7 @@ export function ClubMembers({ initial }: ClubMembersProps) {
 			<ClubSubnav
 				slug={club.slug}
 				showBooklist={club.canViewContent}
+				showSessions={club.canViewContent}
 				showMembers
 				showSettings={club.canManageSettings}
 			/>
