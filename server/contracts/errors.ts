@@ -19,6 +19,9 @@ export const commonErrors = {
 	CONFLICT: {
 		message: "The resource already exists.",
 	},
+	BAD_REQUEST: {
+		message: "The request is invalid.",
+	},
 	RATE_LIMITED: {
 		message: "Too many requests.",
 		data: z.object({ retryAfterSeconds: z.number().int().positive() }),

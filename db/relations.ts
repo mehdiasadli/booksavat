@@ -1,13 +1,26 @@
 import { defineRelations } from "drizzle-orm";
 
 import { account, session, user, verification } from "@/db/schemas/auth.schema";
+import { club, clubMembership } from "@/db/schemas/club.schema";
 import { feedback } from "@/db/schemas/feedback.schema";
 import { follow } from "@/db/schemas/follow.schema";
 import { readingLog } from "@/db/schemas/reading-log.schema";
 import { shelf, shelfItem } from "@/db/schemas/shelf.schema";
 
 export const appRelations = defineRelations(
-	{ user, session, account, verification, shelf, shelfItem, readingLog, feedback, follow },
+	{
+		user,
+		session,
+		account,
+		verification,
+		shelf,
+		shelfItem,
+		readingLog,
+		feedback,
+		follow,
+		club,
+		clubMembership,
+	},
 	(r) => ({
 		user: {
 			sessions: r.many.session(),
@@ -23,6 +36,7 @@ export const appRelations = defineRelations(
 				from: r.user.id,
 				to: r.follow.followingId,
 			}),
+			clubMemberships: r.many.clubMembership(),
 		},
 		session: {
 			user: r.one.user({
@@ -75,6 +89,21 @@ export const appRelations = defineRelations(
 			}),
 			following: r.one.user({
 				from: r.follow.followingId,
+				to: r.user.id,
+				optional: false,
+			}),
+		},
+		club: {
+			memberships: r.many.clubMembership(),
+		},
+		clubMembership: {
+			club: r.one.club({
+				from: r.clubMembership.clubId,
+				to: r.club.id,
+				optional: false,
+			}),
+			user: r.one.user({
+				from: r.clubMembership.userId,
 				to: r.user.id,
 				optional: false,
 			}),
