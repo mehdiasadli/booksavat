@@ -3,7 +3,7 @@ import "server-only";
 import { and, asc, count, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 
 import type { Database } from "@/db";
-import { club, clubMembership, user } from "@/db/schema";
+import { club, clubMembership, readingSession, user } from "@/db/schema";
 import { clubBooklistCapabilities, clubBooklistSettingsDto } from "@/lib/clubs/booklist.server";
 import {
 	CLUB_DESCRIPTION_MAX,
@@ -13,6 +13,8 @@ import {
 	type ClubMemberRole,
 	type ClubMemberStatus,
 	type ClubVisibility,
+	LIVE_SESSION_STATUSES,
+	type ReadingSessionStatus,
 } from "@/lib/clubs/constants";
 import { clubSessionCapabilities } from "@/lib/clubs/session.server";
 import {
@@ -46,6 +48,12 @@ export type ClubSummary = {
 	updatedAt: Date;
 };
 
+export type ClubActiveSession = {
+	id: string;
+	status: ReadingSessionStatus;
+	title: string | null;
+};
+
 export type ClubDetail = ClubSummary & {
 	canViewContent: boolean;
 	membership: MembershipDto | null;
@@ -60,6 +68,7 @@ export type ClubDetail = ClubSummary & {
 	canModerateBooklistProposals: boolean;
 	canCreateSession: boolean;
 	canManageSessions: boolean;
+	activeSession: ClubActiveSession | null;
 };
 
 export type MemberCard = {
@@ -137,6 +146,25 @@ async function toSummary(db: Database, row: ClubRow): Promise<ClubSummary> {
 	};
 }
 
+async function getActiveSession(db: Database, clubId: string): Promise<ClubActiveSession | null> {
+	const [row] = await db
+		.select({
+			id: readingSession.id,
+			status: readingSession.status,
+			title: readingSession.title,
+		})
+		.from(readingSession)
+		.where(
+			and(
+				eq(readingSession.clubId, clubId),
+				inArray(readingSession.status, [...LIVE_SESSION_STATUSES]),
+			),
+		)
+		.orderBy(desc(readingSession.createdAt))
+		.limit(1);
+	return row ?? null;
+}
+
 async function toDetail(
 	db: Database,
 	row: ClubRow,
@@ -150,6 +178,7 @@ async function toDetail(
 	const booklistSettings = clubBooklistSettingsDto(row);
 	const booklistCaps = clubBooklistCapabilities(membership, booklistSettings);
 	const sessionCaps = clubSessionCapabilities(membership);
+	const activeSession = canView ? await getActiveSession(db, row.id) : null;
 
 	return {
 		...summary,
@@ -162,6 +191,7 @@ async function toDetail(
 		booklistSettings,
 		...booklistCaps,
 		...sessionCaps,
+		activeSession,
 	};
 }
 

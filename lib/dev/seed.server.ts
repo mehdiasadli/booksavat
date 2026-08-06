@@ -9,6 +9,10 @@ import {
 	feedback,
 	follow,
 	readingLog,
+	readingSession,
+	sessionParticipant,
+	sessionShortlistItem,
+	sessionVoteAssignment,
 	shelf,
 	shelfItem,
 	user,
@@ -26,6 +30,8 @@ const SEED_WORKS = [
 	"OL82563W", // 1984
 	"OL1168007W", // The Great Gatsby
 	"OL151343W", // To Kill a Mockingbird
+	"OL262281W", // Jane Eyre
+	"OL362043W", // Frankenstein
 ] as const;
 
 type SeedUserKey = "alice" | "bob" | "cara" | "dan" | "erin" | "frank" | "grace" | "mod";
@@ -278,6 +284,9 @@ async function seedClubBooklists(ids: Record<SeedUserKey, string>, now: Date) {
 		{ clubId: fridayId, workId: SEED_WORKS[1], addedByUserId: ids.cara, status: "active" },
 		{ clubId: fridayId, workId: SEED_WORKS[2], addedByUserId: ids.erin, status: "proposed" },
 		{ clubId: fridayId, workId: SEED_WORKS[3], addedByUserId: ids.grace, status: "active" },
+		{ clubId: fridayId, workId: SEED_WORKS[4], addedByUserId: ids.cara, status: "active" },
+		{ clubId: fridayId, workId: SEED_WORKS[5], addedByUserId: ids.alice, status: "active" },
+		{ clubId: fridayId, workId: SEED_WORKS[6], addedByUserId: ids.grace, status: "active" },
 	];
 
 	if (privateId) {
@@ -305,6 +314,164 @@ async function seedClubBooklists(ids: Record<SeedUserKey, string>, now: Date) {
 	);
 
 	console.info(`[seed] booklists ready — ${rows.length} items across sample clubs`);
+}
+
+async function sessionsAlreadySeeded(): Promise<boolean> {
+	const [row] = await db
+		.select({ id: readingSession.id })
+		.from(readingSession)
+		.innerJoin(club, eq(club.id, readingSession.clubId))
+		.where(eq(club.slug, "friday_night_readers"))
+		.limit(1);
+	return Boolean(row);
+}
+
+async function seedClubSessions(ids: Record<SeedUserKey, string>, now: Date) {
+	if (await sessionsAlreadySeeded()) {
+		console.info("[seed] sessions skipped — sample session already exists");
+		return;
+	}
+
+	const [friday] = await db
+		.select({ id: club.id })
+		.from(club)
+		.where(eq(club.slug, "friday_night_readers"))
+		.limit(1);
+	if (!friday) {
+		console.warn("[seed] sessions skipped — friday club missing");
+		return;
+	}
+
+	const joinDeadline = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+	const readingDeadline = new Date(now.getTime() + 21 * 24 * 60 * 60 * 1000);
+	const shortlistWorks = [SEED_WORKS[0], SEED_WORKS[1], SEED_WORKS[3], SEED_WORKS[5]] as const;
+
+	const [session] = await db
+		.insert(readingSession)
+		.values({
+			clubId: friday.id,
+			createdByUserId: ids.alice,
+			status: "voting",
+			title: "April pick",
+			joinDeadline,
+			readingDeadline,
+			selectedWorkId: null,
+			voteChipsByRole: {
+				admin: [1, 2, 3],
+				moderator: [1, 2, 3],
+				member: [1, 2, 3],
+			},
+			createdAt: now,
+			updatedAt: now,
+		})
+		.returning({ id: readingSession.id });
+
+	await db.insert(sessionShortlistItem).values(
+		shortlistWorks.map((workId) => ({
+			sessionId: session.id,
+			workId,
+			addedByUserId: ids.alice,
+			createdAt: now,
+			updatedAt: now,
+		})),
+	);
+
+	const participants = [
+		{ userId: ids.alice },
+		{ userId: ids.cara },
+		{ userId: ids.erin },
+		{ userId: ids.grace },
+	] as const;
+
+	await db.insert(sessionParticipant).values(
+		participants.map((participant) => ({
+			sessionId: session.id,
+			userId: participant.userId,
+			joinedAt: now,
+			voteBlocked: false,
+			createdAt: now,
+			updatedAt: now,
+		})),
+	);
+
+	await db.insert(sessionVoteAssignment).values([
+		{
+			sessionId: session.id,
+			userId: ids.alice,
+			points: 3,
+			workId: shortlistWorks[0],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.alice,
+			points: 2,
+			workId: shortlistWorks[1],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.alice,
+			points: 1,
+			workId: shortlistWorks[2],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.cara,
+			points: 3,
+			workId: shortlistWorks[1],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.cara,
+			points: 2,
+			workId: shortlistWorks[0],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.cara,
+			points: 1,
+			workId: shortlistWorks[3],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.erin,
+			points: 3,
+			workId: shortlistWorks[0],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.erin,
+			points: 2,
+			workId: shortlistWorks[3],
+			createdAt: now,
+			updatedAt: now,
+		},
+		{
+			sessionId: session.id,
+			userId: ids.erin,
+			points: 1,
+			workId: shortlistWorks[1],
+			createdAt: now,
+			updatedAt: now,
+		},
+	]);
+
+	console.info(
+		`[seed] sessions ready — voting “April pick” on /clubs/friday_night_readers/sessions/${session.id}`,
+	);
 }
 
 async function ensureSeedShelves(userId: string, now: Date) {
@@ -568,6 +735,8 @@ async function runSeed(): Promise<void> {
 	await seedClubs(ids, now);
 	console.info("[seed] ensuring sample booklists…");
 	await seedClubBooklists(ids, now);
+	console.info("[seed] ensuring sample reading sessions…");
+	await seedClubSessions(ids, now);
 }
 
 /**

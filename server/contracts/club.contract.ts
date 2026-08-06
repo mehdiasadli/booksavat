@@ -45,6 +45,23 @@ export const clubMembershipSchema = z.object({
 	status: clubMemberStatusSchema,
 });
 
+export const readingSessionStatusSchema = z.enum([
+	"proposed",
+	"voting",
+	"pending",
+	"reading",
+	"reviewing",
+	"completed",
+	"cancelled",
+	"abandoned",
+]);
+
+export const clubActiveSessionSchema = z.object({
+	id: z.uuid(),
+	status: readingSessionStatusSchema,
+	title: z.string().nullable(),
+});
+
 export const clubDetailSchema = clubSummarySchema.extend({
 	canViewContent: z.boolean(),
 	membership: clubMembershipSchema.nullable(),
@@ -59,18 +76,8 @@ export const clubDetailSchema = clubSummarySchema.extend({
 	canModerateBooklistProposals: z.boolean(),
 	canCreateSession: z.boolean(),
 	canManageSessions: z.boolean(),
+	activeSession: clubActiveSessionSchema.nullable(),
 });
-
-export const readingSessionStatusSchema = z.enum([
-	"proposed",
-	"voting",
-	"pending",
-	"reading",
-	"reviewing",
-	"completed",
-	"cancelled",
-	"abandoned",
-]);
 
 export const readingSessionSummarySchema = z.object({
 	id: z.uuid(),
