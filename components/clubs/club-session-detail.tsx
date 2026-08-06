@@ -99,6 +99,49 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 		(item) => !shortlistIds.has(item.workId),
 	);
 
+	const addableSelectItems = useMemo(
+		() => addableBooks.map((item) => ({ value: item.workId, label: item.title })),
+		[addableBooks],
+	);
+
+	const leadingSelectItems = useMemo(
+		() =>
+			session.voting.shortlist
+				.filter((item) => session.voting.leadingWorkIds.includes(item.workId))
+				.map((item) => ({
+					value: item.workId,
+					label: `${item.title} (${item.score} pts)`,
+				})),
+		[session.voting.shortlist, session.voting.leadingWorkIds],
+	);
+
+	const chipByWorkId = useMemo(() => {
+		const map = new Map<string, number>();
+		for (const [points, workId] of Object.entries(chipPicks)) {
+			if (workId) map.set(workId, Number(points));
+		}
+		return map;
+	}, [chipPicks]);
+
+	function assignChipToBook(points: number, workId: string) {
+		setChipPicks((prev) => {
+			const next: Record<number, string> = { ...prev };
+			const alreadyOnThisBook = prev[points] === workId;
+
+			for (const [chip, assignedWorkId] of Object.entries(next)) {
+				if (assignedWorkId === workId) {
+					delete next[Number(chip)];
+				}
+			}
+
+			if (!alreadyOnThisBook) {
+				next[points] = workId;
+			}
+
+			return next;
+		});
+	}
+
 	useEffect(() => {
 		const next: Record<number, string> = {};
 		for (const assignment of session.voting.viewerAssignments) {
@@ -325,7 +368,8 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 								href={`/books/${session.selectedWorkId}`}
 								className="text-foreground underline-offset-4 hover:underline"
 							>
-								{session.selectedWorkId}
+								{session.voting.shortlist.find((item) => item.workId === session.selectedWorkId)
+									?.title ?? session.selectedWorkId}
 							</Link>
 						) : (
 							<span className="text-muted-foreground">Not chosen yet</span>
@@ -403,6 +447,7 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 							<Label htmlFor="add-shortlist">Add from booklist</Label>
 							<div className="flex flex-wrap gap-2">
 								<Select
+									items={addableSelectItems}
 									value={addWorkId}
 									onValueChange={(value) => setAddWorkId(value)}
 									disabled={busy || addableBooks.length === 0}
@@ -411,9 +456,9 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 										<SelectValue placeholder="Select a book…" />
 									</SelectTrigger>
 									<SelectContent>
-										{addableBooks.map((item) => (
-											<SelectItem key={item.id} value={item.workId}>
-												{item.title}
+										{addableSelectItems.map((item) => (
+											<SelectItem key={item.value} value={item.value}>
+												{item.label}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -450,34 +495,66 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 						</p>
 					) : (
 						<div className="grid gap-3">
-							{session.voting.viewerChips.map((points) => (
-								<div key={points} className="grid gap-1.5 sm:grid-cols-[4rem_1fr] sm:items-center">
-									<Label htmlFor={`chip-${points}`}>{points} pts</Label>
-									<Select
-										value={chipPicks[points] ?? null}
-										onValueChange={(value) => {
-											if (!value) return;
-											setChipPicks((prev) => ({ ...prev, [points]: value }));
-										}}
-										disabled={busy}
-									>
-										<SelectTrigger id={`chip-${points}`} className="w-full">
-											<SelectValue placeholder="Choose a book…" />
-										</SelectTrigger>
-										<SelectContent>
-											{session.voting.shortlist.map((item) => (
-												<SelectItem key={item.workId} value={item.workId}>
-													{item.title}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</div>
-							))}
-							<Button size="sm" disabled={busy || !voteReady} onClick={() => castVotes.mutate()}>
-								{castVotes.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-								Save votes
-							</Button>
+							<p className="text-xs text-muted-foreground">
+								Tap a point chip on a book. Each chip can sit on only one book; assigning it again
+								moves it.
+							</p>
+							<ul className="grid gap-2">
+								{session.voting.shortlist.map((item) => {
+									const assignedChip = chipByWorkId.get(item.workId);
+									return (
+										<li
+											key={item.workId}
+											className="flex flex-col gap-2 rounded-md border border-border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+										>
+											<div className="min-w-0">
+												<p className="truncate text-sm font-medium">{item.title}</p>
+												<p className="text-xs text-muted-foreground">{item.score} pts total</p>
+											</div>
+											<div className="flex flex-wrap gap-1.5">
+												{session.voting.viewerChips.map((points) => {
+													const isActive = assignedChip === points;
+													const usedElsewhere =
+														Boolean(chipPicks[points]) && chipPicks[points] !== item.workId;
+													return (
+														<Button
+															key={points}
+															type="button"
+															size="sm"
+															variant={isActive ? "default" : "outline"}
+															disabled={busy}
+															aria-pressed={isActive}
+															title={
+																usedElsewhere
+																	? `Move ${points} pts here`
+																	: isActive
+																		? `Clear ${points} pts`
+																		: `Assign ${points} pts`
+															}
+															onClick={() => assignChipToBook(points, item.workId)}
+														>
+															{points}
+															{usedElsewhere ? (
+																<span className="text-[0.65rem] opacity-70">→</span>
+															) : null}
+														</Button>
+													);
+												})}
+											</div>
+										</li>
+									);
+								})}
+							</ul>
+							<div className="flex flex-wrap items-center gap-2">
+								<p className="text-xs text-muted-foreground">
+									{session.voting.viewerChips.filter((points) => chipPicks[points]).length}/
+									{session.voting.viewerChips.length} chips placed
+								</p>
+								<Button size="sm" disabled={busy || !voteReady} onClick={() => castVotes.mutate()}>
+									{castVotes.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+									Save votes
+								</Button>
+							</div>
 						</div>
 					)}
 
@@ -485,6 +562,7 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 						<div className="grid gap-2 border-t border-border pt-3">
 							<Label htmlFor="tie-break">Tie-break pick</Label>
 							<Select
+								items={leadingSelectItems}
 								value={tieBreakWorkId}
 								onValueChange={(value) => setTieBreakWorkId(value)}
 								disabled={busy}
@@ -493,13 +571,11 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 									<SelectValue placeholder="Pick a leading book…" />
 								</SelectTrigger>
 								<SelectContent>
-									{session.voting.shortlist
-										.filter((item) => session.voting.leadingWorkIds.includes(item.workId))
-										.map((item) => (
-											<SelectItem key={item.workId} value={item.workId}>
-												{item.title} ({item.score} pts)
-											</SelectItem>
-										))}
+									{leadingSelectItems.map((item) => (
+										<SelectItem key={item.value} value={item.value}>
+											{item.label}
+										</SelectItem>
+									))}
 								</SelectContent>
 							</Select>
 						</div>
