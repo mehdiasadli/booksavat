@@ -2,7 +2,17 @@ import { faker } from "@faker-js/faker";
 import { and, eq, like } from "drizzle-orm";
 
 import { db } from "@/db";
-import { feedback, follow, readingLog, shelf, shelfItem, user } from "@/db/schema";
+import {
+	club,
+	clubMembership,
+	feedback,
+	follow,
+	readingLog,
+	shelf,
+	shelfItem,
+	user,
+} from "@/db/schema";
+import type { ClubMemberRole, ClubMemberStatus, ClubVisibility } from "@/lib/clubs/constants";
 import { SYSTEM_SHELF_DEFINITIONS, type SystemShelfKey } from "@/lib/shelves/constants";
 
 const SEED_EMAIL_DOMAIN = "booksavat.test";
@@ -101,6 +111,133 @@ async function alreadySeeded(): Promise<boolean> {
 		.limit(1);
 
 	return Boolean(row);
+}
+
+function seedInviteCode(tag: string): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(8));
+	const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+	return `seed${tag}${hex}`.slice(0, 32);
+}
+
+async function loadSeedUserIds(): Promise<Record<SeedUserKey, string> | null> {
+	const rows = await db
+		.select({ id: user.id, username: user.username })
+		.from(user)
+		.where(like(user.email, `%@${SEED_EMAIL_DOMAIN}`));
+
+	const byUsername = new Map(rows.map((row) => [row.username, row.id]));
+	const ids = {} as Record<SeedUserKey, string>;
+
+	for (const spec of SEED_USER_SPECS) {
+		const id = byUsername.get(spec.username);
+		if (!id) return null;
+		ids[spec.key] = id;
+	}
+
+	return ids;
+}
+
+async function clubsAlreadySeeded(): Promise<boolean> {
+	const [row] = await db
+		.select({ id: club.id })
+		.from(club)
+		.where(eq(club.slug, "friday_night_readers"))
+		.limit(1);
+	return Boolean(row);
+}
+
+async function seedClubs(ids: Record<SeedUserKey, string>, now: Date) {
+	if (await clubsAlreadySeeded()) {
+		console.info("[seed] clubs skipped — sample clubs already exist");
+		return;
+	}
+
+	type MembershipSeed = {
+		userId: string;
+		role: ClubMemberRole;
+		status: ClubMemberStatus;
+	};
+
+	const specs: Array<{
+		name: string;
+		slug: string;
+		description: string;
+		visibility: ClubVisibility;
+		inviteTag: string;
+		members: MembershipSeed[];
+	}> = [
+		{
+			name: "Friday Night Readers",
+			slug: "friday_night_readers",
+			description: "Public club for weekend reads. Open join.",
+			visibility: "public",
+			inviteTag: "pub",
+			members: [
+				{ userId: ids.alice, role: "admin", status: "active" },
+				{ userId: ids.cara, role: "moderator", status: "active" },
+				{ userId: ids.erin, role: "member", status: "active" },
+				{ userId: ids.grace, role: "member", status: "active" },
+				{ userId: ids.dan, role: "member", status: "invited" },
+			],
+		},
+		{
+			name: "Hidden Book Circle",
+			slug: "hidden_book_circle",
+			description: "Invite-only — not listed in search or explore.",
+			visibility: "invite_only",
+			inviteTag: "inv",
+			members: [
+				{ userId: ids.bob, role: "admin", status: "active" },
+				{ userId: ids.frank, role: "member", status: "active" },
+				{ userId: ids.alice, role: "member", status: "invited" },
+			],
+		},
+		{
+			name: "Private Classics",
+			slug: "private_classics",
+			description: "Private club — searchable header; join by invite or request.",
+			visibility: "private",
+			inviteTag: "prv",
+			members: [
+				{ userId: ids.grace, role: "admin", status: "active" },
+				{ userId: ids.mod, role: "moderator", status: "active" },
+				{ userId: ids.cara, role: "member", status: "active" },
+				{ userId: ids.erin, role: "member", status: "requested" },
+			],
+		},
+	];
+
+	for (const spec of specs) {
+		const [created] = await db
+			.insert(club)
+			.values({
+				name: spec.name,
+				slug: spec.slug,
+				description: spec.description,
+				visibility: spec.visibility,
+				inviteCode: seedInviteCode(spec.inviteTag),
+				createdAt: now,
+				updatedAt: now,
+			})
+			.returning({ id: club.id, slug: club.slug, inviteCode: club.inviteCode });
+
+		await db.insert(clubMembership).values(
+			spec.members.map((member) => ({
+				clubId: created.id,
+				userId: member.userId,
+				role: member.role,
+				status: member.status,
+				createdAt: now,
+				updatedAt: now,
+			})),
+		);
+
+		console.info(
+			`  /clubs/${created.slug}  (${spec.visibility})  invite: /join/${created.inviteCode}`,
+		);
+	}
+
+	console.info("[seed] clubs ready");
 }
 
 async function ensureSeedShelves(userId: string, now: Date) {
@@ -325,34 +462,43 @@ async function runSeed(): Promise<void> {
 		return;
 	}
 
-	if (await alreadySeeded()) {
-		console.info(`[seed] skipped — @${SEED_EMAIL_DOMAIN} users already exist`);
-		return;
-	}
-
-	faker.seed(FAKER_SEED);
 	const now = new Date();
-	console.info("[seed] creating development users…");
+	let ids = await loadSeedUserIds();
 
-	const created: Array<Awaited<ReturnType<typeof createSeedUser>>> = [];
-	for (const spec of SEED_USER_SPECS) {
-		created.push(await createSeedUser(spec, now));
-	}
+	if (!ids) {
+		if (await alreadySeeded()) {
+			console.warn("[seed] partial seed users found; skipping user create. Fix DB or re-seed.");
+			return;
+		}
 
-	const ids = Object.fromEntries(created.map((u) => [u.key, u.id])) as Record<SeedUserKey, string>;
+		faker.seed(FAKER_SEED);
+		console.info("[seed] creating development users…");
 
-	await seedFollows(ids, now);
-	await seedActivity(ids, now);
+		const created: Array<Awaited<ReturnType<typeof createSeedUser>>> = [];
+		for (const spec of SEED_USER_SPECS) {
+			created.push(await createSeedUser(spec, now));
+		}
 
-	console.info("[seed] ready — sign in with Google as yourself, then visit:");
-	for (const u of created) {
+		ids = Object.fromEntries(created.map((u) => [u.key, u.id])) as Record<SeedUserKey, string>;
+
+		await seedFollows(ids, now);
+		await seedActivity(ids, now);
+
+		console.info("[seed] users ready — sign in with Google as yourself, then visit:");
+		for (const u of created) {
+			console.info(
+				`  /users/${u.username}  (${u.label}${u.isPrivate ? ", private" : ""}${u.role !== "user" ? `, ${u.role}` : ""})`,
+			);
+		}
 		console.info(
-			`  /users/${u.username}  (${u.label}${u.isPrivate ? ", private" : ""}${u.role !== "user" ? `, ${u.role}` : ""})`,
+			`  emails: <username>@${SEED_EMAIL_DOMAIN}  |  follow graph: cara→alice, alice↔erin, dan→bob(pending), alice→bob(pending)`,
 		);
+	} else {
+		console.info(`[seed] users present — @${SEED_EMAIL_DOMAIN}`);
 	}
-	console.info(
-		`  emails: <username>@${SEED_EMAIL_DOMAIN}  |  follow graph: cara→alice, alice↔erin, dan→bob(pending), alice→bob(pending)`,
-	);
+
+	console.info("[seed] ensuring sample clubs…");
+	await seedClubs(ids, now);
 }
 
 /**
