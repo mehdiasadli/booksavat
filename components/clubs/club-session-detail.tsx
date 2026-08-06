@@ -56,6 +56,20 @@ const nextLabel: Record<string, string> = {
 	reviewing: "Mark completed",
 };
 
+const readingStatusLabel: Record<string, string> = {
+	not_started: "Not started",
+	reading: "Reading",
+	completed: "Completed",
+	dnf: "DNF",
+};
+
+const overrideSelectItems = [
+	{ value: "sync", label: "Follow diary" },
+	{ value: "reading", label: "Reading" },
+	{ value: "completed", label: "Completed" },
+	{ value: "dnf", label: "DNF" },
+] as const;
+
 interface ClubSessionDetailProps {
 	club: ClubDetail;
 	initial: SessionDetail;
@@ -295,6 +309,27 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 		onError: (error) => toast.error(error instanceof Error ? error.message : "Could not update"),
 	});
 
+	const setReadingOverride = useMutation({
+		mutationFn: ({
+			userId,
+			status,
+		}: {
+			userId: string;
+			status: "reading" | "completed" | "dnf" | null;
+		}) =>
+			client.club.setSessionReadingOverride({
+				slug: club.slug,
+				sessionId: session.id,
+				userId,
+				status,
+			}),
+		onSuccess: () => {
+			toast.success("Reading progress updated");
+			invalidate();
+		},
+		onError: (error) => toast.error(error instanceof Error ? error.message : "Could not update"),
+	});
+
 	const busy =
 		join.isPending ||
 		leave.isPending ||
@@ -305,7 +340,8 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 		removeShortlist.isPending ||
 		fillRandom.isPending ||
 		castVotes.isPending ||
-		setBlocked.isPending;
+		setBlocked.isPending ||
+		setReadingOverride.isPending;
 
 	const voteReady =
 		session.voting.viewerChips.length > 0 &&
@@ -356,7 +392,14 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 					<dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 						Reading deadline
 					</dt>
-					<dd>{session.readingDeadline ? session.readingDeadline.toLocaleString() : "Not set"}</dd>
+					<dd className="flex flex-wrap items-center gap-2">
+						<span>
+							{session.readingDeadline ? session.readingDeadline.toLocaleString() : "Not set"}
+						</span>
+						{session.reading?.deadlinePassed ? (
+							<Badge variant="outline">Past deadline</Badge>
+						) : null}
+					</dd>
 				</div>
 				<div className="sm:col-span-2">
 					<dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -368,8 +411,10 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 								href={`/books/${session.selectedWorkId}`}
 								className="text-foreground underline-offset-4 hover:underline"
 							>
-								{session.voting.shortlist.find((item) => item.workId === session.selectedWorkId)
-									?.title ?? session.selectedWorkId}
+								{session.reading?.selectedWork?.title ??
+									session.voting.shortlist.find((item) => item.workId === session.selectedWorkId)
+										?.title ??
+									"Selected book"}
 							</Link>
 						) : (
 							<span className="text-muted-foreground">Not chosen yet</span>
@@ -377,6 +422,83 @@ export function ClubSessionDetail({ club: initialClub, initial }: ClubSessionDet
 					</dd>
 				</div>
 			</dl>
+
+			{session.reading ? (
+				<section className="grid gap-3 rounded-lg border border-border p-4">
+					<div>
+						<h2 className="font-heading text-lg font-semibold tracking-tight">Reading progress</h2>
+						<p className="text-sm text-muted-foreground">
+							Synced from each participant’s diary for{" "}
+							{session.reading.selectedWork?.title ?? "the selected book"}. Overrides stay on this
+							session only.
+						</p>
+					</div>
+
+					<div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+						<span>{session.reading.summary.not_started} not started</span>
+						<span>{session.reading.summary.reading} reading</span>
+						<span>{session.reading.summary.completed} completed</span>
+						<span>{session.reading.summary.dnf} DNF</span>
+					</div>
+
+					{session.reading.participants.length === 0 ? (
+						<p className="text-sm text-muted-foreground">No participants yet.</p>
+					) : (
+						<ul className="grid gap-2">
+							{session.reading.participants.map((participant) => (
+								<li
+									key={participant.userId}
+									className="flex flex-col gap-2 rounded-md border border-border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+								>
+									<div className="min-w-0">
+										<p className="text-sm font-medium">@{participant.username}</p>
+										<p className="text-xs text-muted-foreground">
+											Diary: {readingStatusLabel[participant.derivedStatus]}
+											{participant.overrideStatus ? (
+												<>
+													{" · "}
+													Override: {readingStatusLabel[participant.overrideStatus]}
+												</>
+											) : null}
+										</p>
+									</div>
+									<div className="flex flex-wrap items-center gap-2">
+										<Badge variant="secondary">
+											{readingStatusLabel[participant.effectiveStatus]}
+										</Badge>
+										{participant.canOverride ? (
+											<Select
+												items={[...overrideSelectItems]}
+												value={participant.overrideStatus ?? "sync"}
+												onValueChange={(value) => {
+													if (!value) return;
+													setReadingOverride.mutate({
+														userId: participant.userId,
+														status:
+															value === "sync" ? null : (value as "reading" | "completed" | "dnf"),
+													});
+												}}
+												disabled={busy}
+											>
+												<SelectTrigger className="w-[10.5rem]" size="sm">
+													<SelectValue placeholder="Override…" />
+												</SelectTrigger>
+												<SelectContent>
+													{overrideSelectItems.map((item) => (
+														<SelectItem key={item.value} value={item.value}>
+															{item.label}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										) : null}
+									</div>
+								</li>
+							))}
+						</ul>
+					)}
+				</section>
+			) : null}
 
 			{(session.status === "proposed" || session.status === "voting") && (
 				<section className="grid gap-3 rounded-lg border border-border p-4">

@@ -15,6 +15,7 @@ import {
 
 import { user } from "@/db/schemas/auth.schema";
 import { club } from "@/db/schemas/club.schema";
+import { readingLogStatusEnum } from "@/db/schemas/reading-log.schema";
 import { createdAt, id, updatedAt } from "@/db/utils";
 
 type VoteChipsByRoleColumn = {
@@ -80,6 +81,8 @@ export const sessionParticipant = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		joinedAt: timestamp("joined_at").defaultNow().notNull(),
 		voteBlocked: boolean("vote_blocked").default(false).notNull(),
+		/** When set, session progress uses this instead of the personal reading log. */
+		readingStatusOverride: readingLogStatusEnum("reading_status_override"),
 	},
 	(table) => [
 		unique("session_participant_session_user_uidx").on(table.sessionId, table.userId),

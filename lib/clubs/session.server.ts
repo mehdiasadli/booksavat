@@ -17,6 +17,10 @@ import {
 	selectedWorkRequiredForStatus,
 } from "@/lib/clubs/session-lifecycle";
 import {
+	buildSessionReadingState,
+	type SessionReadingState,
+} from "@/lib/clubs/session-reading.server";
+import {
 	assertReadyToOpenVoting,
 	buildSessionVotingState,
 	clubVoteChips,
@@ -53,6 +57,7 @@ export type ReadingSessionDetail = ReadingSessionSummary & {
 		image: string | null;
 	};
 	voting: SessionVotingState;
+	reading: SessionReadingState | null;
 };
 
 type ServiceError = {
@@ -179,7 +184,10 @@ async function toDetail(
 		.where(eq(user.id, row.createdByUserId))
 		.limit(1);
 
-	const voting = await buildSessionVotingState(db, row, membership, viewerUserId);
+	const [voting, reading] = await Promise.all([
+		buildSessionVotingState(db, row, membership, viewerUserId),
+		buildSessionReadingState(db, row, membership, viewerUserId),
+	]);
 
 	return {
 		...summary,
@@ -196,6 +204,7 @@ async function toDetail(
 			image: null,
 		},
 		voting,
+		reading,
 	};
 }
 
@@ -512,13 +521,16 @@ export async function abandonReadingSession(
 	return ok(await toDetail(db, updated, viewerUserId, membership));
 }
 
-/** True if work is selected on a live session or on a live session shortlist. */
+/**
+ * True if work is selected on a live session, or on a live shortlist.
+ * Selected books stay locked through pending → reading → reviewing.
+ */
 export async function isWorkLockedByLiveSession(
 	db: Database,
 	clubId: string,
 	workId: string,
 ): Promise<boolean> {
-	const [row] = await db
+	const [selected] = await db
 		.select({ id: readingSession.id })
 		.from(readingSession)
 		.where(
@@ -529,7 +541,7 @@ export async function isWorkLockedByLiveSession(
 			),
 		)
 		.limit(1);
-	if (row) return true;
+	if (selected) return true;
 	return isWorkOnLiveSessionShortlist(db, clubId, workId);
 }
 

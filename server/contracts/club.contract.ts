@@ -1,6 +1,7 @@
 import * as z from "zod";
 
 import { base, paginated, paginationInputSchema } from "@/server/contracts/base.contract";
+import { readingLogStatusSchema } from "@/server/contracts/reading-log.contract";
 
 export const clubVisibilitySchema = z.enum(["public", "invite_only", "private"]);
 export const clubMemberRoleSchema = z.enum(["admin", "moderator", "member"]);
@@ -117,6 +118,43 @@ export const sessionVotingStateSchema = z.object({
 	),
 });
 
+export const sessionParticipantReadingStatusSchema = z.enum([
+	"not_started",
+	"reading",
+	"completed",
+	"dnf",
+]);
+
+export const sessionReadingStateSchema = z.object({
+	selectedWork: z
+		.object({
+			workId: z.string(),
+			title: z.string(),
+			coverUrl: z.string().nullable(),
+		})
+		.nullable(),
+	readingDeadline: z.date().nullable(),
+	deadlinePassed: z.boolean(),
+	participants: z.array(
+		z.object({
+			userId: z.uuid(),
+			username: z.string(),
+			name: z.string(),
+			image: z.url().nullable(),
+			derivedStatus: sessionParticipantReadingStatusSchema,
+			overrideStatus: readingLogStatusSchema.nullable(),
+			effectiveStatus: sessionParticipantReadingStatusSchema,
+			canOverride: z.boolean(),
+		}),
+	),
+	summary: z.object({
+		not_started: z.number().int().min(0),
+		reading: z.number().int().min(0),
+		completed: z.number().int().min(0),
+		dnf: z.number().int().min(0),
+	}),
+});
+
 export const readingSessionDetailSchema = readingSessionSummarySchema.extend({
 	viewerJoined: z.boolean(),
 	canJoin: z.boolean(),
@@ -131,6 +169,7 @@ export const readingSessionDetailSchema = readingSessionSummarySchema.extend({
 		image: z.url().nullable(),
 	}),
 	voting: sessionVotingStateSchema,
+	reading: sessionReadingStateSchema.nullable(),
 });
 
 export const clubBooklistItemSchema = z.object({
@@ -711,6 +750,21 @@ export const setSessionVoteBlockedContract = base
 	)
 	.output(sessionVotingStateSchema);
 
+export const setSessionReadingOverrideContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/sessions/{sessionId}/reading-override",
+		tags: ["club"],
+		summary: "Set or clear a participant reading status override",
+	})
+	.input(
+		sessionIdInput.extend({
+			userId: z.uuid().optional(),
+			status: readingLogStatusSchema.nullable(),
+		}),
+	)
+	.output(sessionReadingStateSchema);
+
 export const clubContract = {
 	create: createClubContract,
 	update: updateClubContract,
@@ -757,4 +811,5 @@ export const clubContract = {
 	fillRandomSessionShortlist: fillRandomSessionShortlistContract,
 	castSessionVotes: castSessionVotesContract,
 	setSessionVoteBlocked: setSessionVoteBlockedContract,
+	setSessionReadingOverride: setSessionReadingOverrideContract,
 };

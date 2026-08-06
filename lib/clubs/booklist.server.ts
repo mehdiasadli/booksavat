@@ -509,7 +509,10 @@ export async function removeBooklistItem(
 	}
 
 	if (await isBooklistWorkRemovalLocked(db, row.id, workId)) {
-		return fail("conflict", "This book is locked by an active reading session");
+		return fail(
+			"conflict",
+			"This book is locked by an active reading session (selected book or shortlist)",
+		);
 	}
 
 	const deleted = await db
