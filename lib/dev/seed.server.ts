@@ -4,6 +4,7 @@ import { and, eq, like } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	club,
+	clubBooklistItem,
 	clubMembership,
 	feedback,
 	follow,
@@ -238,6 +239,72 @@ async function seedClubs(ids: Record<SeedUserKey, string>, now: Date) {
 	}
 
 	console.info("[seed] clubs ready");
+}
+
+async function booklistsAlreadySeeded(): Promise<boolean> {
+	const [row] = await db
+		.select({ id: clubBooklistItem.id })
+		.from(clubBooklistItem)
+		.innerJoin(club, eq(club.id, clubBooklistItem.clubId))
+		.where(eq(club.slug, "friday_night_readers"))
+		.limit(1);
+	return Boolean(row);
+}
+
+async function seedClubBooklists(ids: Record<SeedUserKey, string>, now: Date) {
+	if (await booklistsAlreadySeeded()) {
+		console.info("[seed] booklists skipped — sample items already exist");
+		return;
+	}
+
+	const clubRows = await db.select({ id: club.id, slug: club.slug }).from(club);
+	const bySlug = new Map(clubRows.map((row) => [row.slug, row.id]));
+	const fridayId = bySlug.get("friday_night_readers");
+	const privateId = bySlug.get("private_classics");
+	const hiddenId = bySlug.get("hidden_book_circle");
+
+	if (!fridayId) {
+		console.warn("[seed] booklists skipped — clubs missing");
+		return;
+	}
+
+	const rows: Array<{
+		clubId: string;
+		workId: string;
+		addedByUserId: string;
+		status: "active" | "proposed";
+	}> = [
+		{ clubId: fridayId, workId: SEED_WORKS[0], addedByUserId: ids.alice, status: "active" },
+		{ clubId: fridayId, workId: SEED_WORKS[1], addedByUserId: ids.cara, status: "active" },
+		{ clubId: fridayId, workId: SEED_WORKS[2], addedByUserId: ids.erin, status: "proposed" },
+		{ clubId: fridayId, workId: SEED_WORKS[3], addedByUserId: ids.grace, status: "active" },
+	];
+
+	if (privateId) {
+		rows.push(
+			{ clubId: privateId, workId: SEED_WORKS[2], addedByUserId: ids.grace, status: "active" },
+			{ clubId: privateId, workId: SEED_WORKS[4], addedByUserId: ids.cara, status: "proposed" },
+		);
+	}
+
+	if (hiddenId) {
+		rows.push({
+			clubId: hiddenId,
+			workId: SEED_WORKS[1],
+			addedByUserId: ids.bob,
+			status: "active",
+		});
+	}
+
+	await db.insert(clubBooklistItem).values(
+		rows.map((row) => ({
+			...row,
+			createdAt: now,
+			updatedAt: now,
+		})),
+	);
+
+	console.info(`[seed] booklists ready — ${rows.length} items across sample clubs`);
 }
 
 async function ensureSeedShelves(userId: string, now: Date) {
@@ -499,6 +566,8 @@ async function runSeed(): Promise<void> {
 
 	console.info("[seed] ensuring sample clubs…");
 	await seedClubs(ids, now);
+	console.info("[seed] ensuring sample booklists…");
+	await seedClubBooklists(ids, now);
 }
 
 /**
