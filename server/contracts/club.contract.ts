@@ -5,6 +5,19 @@ import { base, paginated, paginationInputSchema } from "@/server/contracts/base.
 export const clubVisibilitySchema = z.enum(["public", "invite_only", "private"]);
 export const clubMemberRoleSchema = z.enum(["admin", "moderator", "member"]);
 export const clubMemberStatusSchema = z.enum(["active", "invited", "requested"]);
+export const clubBooklistItemStatusSchema = z.enum(["active", "proposed"]);
+export const clubShortlistModeSchema = z.enum(["manual", "random"]);
+
+export const clubBooklistSettingsSchema = z.object({
+	modsCanAdd: z.boolean(),
+	membersCanAdd: z.boolean(),
+	modsCanRemove: z.boolean(),
+	membersCanRemove: z.boolean(),
+	modsCanPropose: z.boolean(),
+	membersCanPropose: z.boolean(),
+	shortlistMode: clubShortlistModeSchema,
+	defaultShortlistSize: z.number().int().min(2).max(30),
+});
 
 export const clubSummarySchema = z.object({
 	id: z.uuid(),
@@ -29,6 +42,25 @@ export const clubDetailSchema = clubSummarySchema.extend({
 	canManageSettings: z.boolean(),
 	canInvite: z.boolean(),
 	canModerateRequests: z.boolean(),
+	booklistSettings: clubBooklistSettingsSchema,
+	canAddToBooklist: z.boolean(),
+	canProposeToBooklist: z.boolean(),
+	canRemoveFromBooklist: z.boolean(),
+	canModerateBooklistProposals: z.boolean(),
+});
+
+export const clubBooklistItemSchema = z.object({
+	id: z.uuid(),
+	workId: z.string(),
+	status: clubBooklistItemStatusSchema,
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	addedBy: z.object({
+		id: z.uuid(),
+		username: z.string(),
+		name: z.string(),
+		image: z.url().nullable(),
+	}),
 });
 
 export const clubMemberCardSchema = z.object({
@@ -336,6 +368,93 @@ export const transferAdminContract = base
 	.input(usernameInput)
 	.output(z.object({ ok: z.literal(true) }));
 
+const workIdInput = z.object({
+	slug: z.string().trim().min(1).max(64),
+	workId: z.string().trim().min(1).max(64),
+});
+
+export const updateBooklistSettingsContract = base
+	.route({
+		method: "PATCH",
+		path: "/club/{slug}/booklist/settings",
+		tags: ["club"],
+		summary: "Update club booklist settings",
+	})
+	.input(
+		z.object({
+			slug: z.string().trim().min(1).max(64),
+			modsCanAdd: z.boolean().optional(),
+			membersCanAdd: z.boolean().optional(),
+			modsCanRemove: z.boolean().optional(),
+			membersCanRemove: z.boolean().optional(),
+			modsCanPropose: z.boolean().optional(),
+			membersCanPropose: z.boolean().optional(),
+			shortlistMode: clubShortlistModeSchema.optional(),
+			defaultShortlistSize: z.number().int().min(2).max(30).optional(),
+		}),
+	)
+	.output(clubBooklistSettingsSchema);
+
+export const listBooklistContract = base
+	.route({
+		method: "GET",
+		path: "/club/{slug}/booklist",
+		tags: ["club"],
+		summary: "List active club booklist items",
+	})
+	.input(paginationInputSchema.merge(slugInput))
+	.output(paginated(clubBooklistItemSchema));
+
+export const listBooklistProposalsContract = base
+	.route({
+		method: "GET",
+		path: "/club/{slug}/booklist/proposals",
+		tags: ["club"],
+		summary: "List pending booklist proposals",
+	})
+	.input(slugInput)
+	.output(z.object({ items: z.array(clubBooklistItemSchema) }));
+
+export const addBooklistItemContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/booklist",
+		tags: ["club"],
+		summary: "Add or propose a book to the club booklist",
+	})
+	.input(workIdInput)
+	.output(clubBooklistItemSchema);
+
+export const approveBooklistProposalContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/booklist/proposals/{workId}/approve",
+		tags: ["club"],
+		summary: "Approve a booklist proposal",
+	})
+	.input(workIdInput)
+	.output(clubBooklistItemSchema);
+
+export const rejectBooklistProposalContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/booklist/proposals/{workId}/reject",
+		tags: ["club"],
+		summary: "Reject a booklist proposal",
+	})
+	.input(workIdInput)
+	.output(z.object({ ok: z.literal(true) }));
+
+export const removeBooklistItemContract = base
+	.route({
+		method: "DELETE",
+		path: "/club/{slug}/booklist/{workId}",
+		tags: ["club"],
+		summary: "Remove a book from the club booklist",
+	})
+	.input(workIdInput)
+	.output(z.object({ ok: z.literal(true) }));
+
 export const clubContract = {
 	create: createClubContract,
 	update: updateClubContract,
@@ -362,4 +481,11 @@ export const clubContract = {
 	removeMember: removeMemberContract,
 	leave: leaveClubContract,
 	transferAdmin: transferAdminContract,
+	updateBooklistSettings: updateBooklistSettingsContract,
+	listBooklist: listBooklistContract,
+	listBooklistProposals: listBooklistProposalsContract,
+	addBooklistItem: addBooklistItemContract,
+	approveBooklistProposal: approveBooklistProposalContract,
+	rejectBooklistProposal: rejectBooklistProposalContract,
+	removeBooklistItem: removeBooklistItemContract,
 };

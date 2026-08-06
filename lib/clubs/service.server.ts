@@ -4,10 +4,12 @@ import { and, asc, count, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-
 
 import type { Database } from "@/db";
 import { club, clubMembership, user } from "@/db/schema";
+import { clubBooklistCapabilities, clubBooklistSettingsDto } from "@/lib/clubs/booklist.server";
 import {
 	CLUB_DESCRIPTION_MAX,
 	CLUB_NAME_MAX,
 	CLUB_SLUG_MAX,
+	type ClubBooklistSettings,
 	type ClubMemberRole,
 	type ClubMemberStatus,
 	type ClubVisibility,
@@ -50,6 +52,11 @@ export type ClubDetail = ClubSummary & {
 	canManageSettings: boolean;
 	canInvite: boolean;
 	canModerateRequests: boolean;
+	booklistSettings: ClubBooklistSettings;
+	canAddToBooklist: boolean;
+	canProposeToBooklist: boolean;
+	canRemoveFromBooklist: boolean;
+	canModerateBooklistProposals: boolean;
 };
 
 export type MemberCard = {
@@ -137,6 +144,8 @@ async function toDetail(
 	const canView = canViewClubContent({ visibility: row.visibility, membership });
 	const summary = await toSummary(db, row);
 	const inviteAllowed = canInvite(membership);
+	const booklistSettings = clubBooklistSettingsDto(row);
+	const booklistCaps = clubBooklistCapabilities(membership, booklistSettings);
 
 	return {
 		...summary,
@@ -146,6 +155,8 @@ async function toDetail(
 		canManageSettings: canManageSettings(membership),
 		canInvite: inviteAllowed,
 		canModerateRequests: canModerateRequests(membership),
+		booklistSettings,
+		...booklistCaps,
 	};
 }
 
