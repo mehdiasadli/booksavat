@@ -5,6 +5,7 @@ import { and, asc, count, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-
 import type { Database } from "@/db";
 import { club, clubMembership, readingSession, user } from "@/db/schema";
 import { clubBooklistCapabilities, clubBooklistSettingsDto } from "@/lib/clubs/booklist.server";
+import { canAnnounce, canCreateCommunityPost, canModerateCommunity } from "@/lib/clubs/community";
 import {
 	CLUB_DESCRIPTION_MAX,
 	CLUB_NAME_MAX,
@@ -69,6 +70,15 @@ export type ClubDetail = ClubSummary & {
 	canCreateSession: boolean;
 	canManageSessions: boolean;
 	activeSession: ClubActiveSession | null;
+	communitySettings: {
+		communityEnabled: boolean;
+		canPost: "all_members" | "moderators" | "admin_only";
+		defaultCanPeopleComment: boolean;
+		defaultCanPeopleReact: boolean;
+	};
+	canCreateCommunityPost: boolean;
+	canAnnounce: boolean;
+	canModerateCommunity: boolean;
 };
 
 export type MemberCard = {
@@ -180,6 +190,13 @@ async function toDetail(
 	const sessionCaps = clubSessionCapabilities(membership);
 	const activeSession = canView ? await getActiveSession(db, row.id) : null;
 
+	const communitySettings = {
+		communityEnabled: row.communityEnabled,
+		canPost: row.canPost,
+		defaultCanPeopleComment: row.defaultCanPeopleComment,
+		defaultCanPeopleReact: row.defaultCanPeopleReact,
+	};
+
 	return {
 		...summary,
 		canViewContent: canView,
@@ -192,6 +209,12 @@ async function toDetail(
 		...booklistCaps,
 		...sessionCaps,
 		activeSession,
+		communitySettings,
+		canCreateCommunityPost:
+			communitySettings.communityEnabled &&
+			canCreateCommunityPost(membership, communitySettings.canPost, "discussion"),
+		canAnnounce: communitySettings.communityEnabled && canAnnounce(membership),
+		canModerateCommunity: canModerateCommunity(membership),
 	};
 }
 

@@ -4,6 +4,7 @@ import { and, count, desc, eq, inArray } from "drizzle-orm";
 
 import type { Database } from "@/db";
 import { club, clubMembership, readingSession, sessionParticipant, user } from "@/db/schema";
+import { createSessionSystemPost } from "@/lib/clubs/community.server";
 import { CLUB_SESSION_TITLE_MAX } from "@/lib/clubs/constants";
 import {
 	advanceRequiresSelectedWork,
@@ -280,6 +281,15 @@ export async function createReadingSession(
 		})
 		.returning();
 
+	await createSessionSystemPost(db, {
+		clubId: clubRow.id,
+		clubSlug: clubRow.slug,
+		sessionId: created.id,
+		sessionTitle: created.title,
+		eventKey: "created",
+		actorUserId: viewerUserId,
+	});
+
 	return ok(await toDetail(db, created, viewerUserId, membership));
 }
 
@@ -460,6 +470,23 @@ export async function advanceReadingSession(
 		.where(eq(readingSession.id, row.id))
 		.returning();
 
+	if (
+		next === "voting" ||
+		next === "pending" ||
+		next === "reading" ||
+		next === "reviewing" ||
+		next === "completed"
+	) {
+		await createSessionSystemPost(db, {
+			clubId: clubRow.id,
+			clubSlug: clubRow.slug,
+			sessionId: updated.id,
+			sessionTitle: updated.title,
+			eventKey: next,
+			actorUserId: viewerUserId,
+		});
+	}
+
 	return ok(await toDetail(db, updated, viewerUserId, membership));
 }
 
@@ -489,6 +516,15 @@ export async function cancelReadingSession(
 		.where(eq(readingSession.id, row.id))
 		.returning();
 
+	await createSessionSystemPost(db, {
+		clubId: clubRow.id,
+		clubSlug: clubRow.slug,
+		sessionId: updated.id,
+		sessionTitle: updated.title,
+		eventKey: "cancelled",
+		actorUserId: viewerUserId,
+	});
+
 	return ok(await toDetail(db, updated, viewerUserId, membership));
 }
 
@@ -517,6 +553,15 @@ export async function abandonReadingSession(
 		.set({ status: "abandoned", updatedAt: new Date() })
 		.where(eq(readingSession.id, row.id))
 		.returning();
+
+	await createSessionSystemPost(db, {
+		clubId: clubRow.id,
+		clubSlug: clubRow.slug,
+		sessionId: updated.id,
+		sessionTitle: updated.title,
+		eventKey: "abandoned",
+		actorUserId: viewerUserId,
+	});
 
 	return ok(await toDetail(db, updated, viewerUserId, membership));
 }

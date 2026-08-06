@@ -62,6 +62,16 @@ export const clubActiveSessionSchema = z.object({
 	title: z.string().nullable(),
 });
 
+export const clubCanPostSchema = z.enum(["all_members", "moderators", "admin_only"]);
+export const clubPostTypeSchema = z.enum(["discussion", "announcement", "system"]);
+
+export const clubCommunitySettingsSchema = z.object({
+	communityEnabled: z.boolean(),
+	canPost: clubCanPostSchema,
+	defaultCanPeopleComment: z.boolean(),
+	defaultCanPeopleReact: z.boolean(),
+});
+
 export const clubDetailSchema = clubSummarySchema.extend({
 	canViewContent: z.boolean(),
 	membership: clubMembershipSchema.nullable(),
@@ -77,6 +87,10 @@ export const clubDetailSchema = clubSummarySchema.extend({
 	canCreateSession: z.boolean(),
 	canManageSessions: z.boolean(),
 	activeSession: clubActiveSessionSchema.nullable(),
+	communitySettings: clubCommunitySettingsSchema,
+	canCreateCommunityPost: z.boolean(),
+	canAnnounce: z.boolean(),
+	canModerateCommunity: z.boolean(),
 });
 
 export const readingSessionSummarySchema = z.object({
@@ -887,6 +901,281 @@ export const toggleSessionDiscussionReactionContract = base
 	)
 	.output(sessionDiscussionStateSchema);
 
+export const communityFeedSortSchema = z.enum(["hot", "top", "new"]);
+export const communityTopRangeSchema = z.enum(["today", "week", "month", "year", "all"]);
+
+const communityAuthorSchema = z.object({
+	id: z.uuid(),
+	username: z.string(),
+	name: z.string(),
+	image: z.url().nullable(),
+	role: clubMemberRoleSchema.nullable(),
+});
+
+const communityReactionSchema = z.object({
+	emoji: z.string(),
+	count: z.number().int().min(0),
+	reactedByViewer: z.boolean(),
+});
+
+const communityAttachmentSchema = z.object({
+	id: z.uuid(),
+	kind: z.enum(["work", "edition"]),
+	workId: z.string().nullable(),
+	editionId: z.string().nullable(),
+	title: z.string(),
+	coverUrl: z.string().nullable(),
+});
+
+export const communityPostSummarySchema = z.object({
+	id: z.uuid(),
+	clubId: z.uuid(),
+	type: clubPostTypeSchema,
+	title: z.string(),
+	slug: z.string(),
+	body: richTextDocumentSchema.nullable(),
+	canPeopleComment: z.boolean(),
+	canPeopleReact: z.boolean(),
+	pinnedAt: z.date().nullable(),
+	deletedAt: z.date().nullable(),
+	relatedSessionId: z.uuid().nullable(),
+	reactionCount: z.number().int().min(0),
+	commentCount: z.number().int().min(0),
+	replyCount: z.number().int().min(0),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	author: communityAuthorSchema.nullable(),
+	attachments: z.array(communityAttachmentSchema),
+	reactions: z.array(communityReactionSchema),
+	engagement: z.number(),
+	hotScore: z.number(),
+	canEdit: z.boolean(),
+	canDelete: z.boolean(),
+	canPin: z.boolean(),
+	canComment: z.boolean(),
+	canReact: z.boolean(),
+});
+
+export type CommunityCommentSchema = {
+	id: string;
+	postId: string;
+	parentId: string | null;
+	depth: number;
+	body: Record<string, unknown> | null;
+	deletedAt: Date | null;
+	createdAt: Date;
+	updatedAt: Date;
+	author: z.infer<typeof communityAuthorSchema>;
+	reactions: z.infer<typeof communityReactionSchema>[];
+	canDelete: boolean;
+	canReply: boolean;
+	canReact: boolean;
+	replies: CommunityCommentSchema[];
+};
+
+export const communityCommentSchema: z.ZodType<CommunityCommentSchema> = z.lazy(() =>
+	z.object({
+		id: z.uuid(),
+		postId: z.uuid(),
+		parentId: z.uuid().nullable(),
+		depth: z.number().int().min(0).max(5),
+		body: richTextDocumentSchema.nullable(),
+		deletedAt: z.date().nullable(),
+		createdAt: z.date(),
+		updatedAt: z.date(),
+		author: communityAuthorSchema,
+		reactions: z.array(communityReactionSchema),
+		canDelete: z.boolean(),
+		canReply: z.boolean(),
+		canReact: z.boolean(),
+		replies: z.array(communityCommentSchema),
+	}),
+);
+
+export const communityPostDetailSchema = communityPostSummarySchema.extend({
+	comments: z.array(communityCommentSchema),
+	maxDepth: z.number().int().min(0),
+	reactionEmojis: z.array(z.string()),
+});
+
+export type CommunityPostSummary = z.infer<typeof communityPostSummarySchema>;
+export type CommunityPostDetail = z.infer<typeof communityPostDetailSchema>;
+
+export const communityFeedPageSchema = z.object({
+	items: z.array(communityPostSummarySchema),
+	nextCursor: z.string().nullable(),
+	communityEnabled: z.boolean(),
+	canPost: z.boolean(),
+	canAnnounce: z.boolean(),
+	canModerate: z.boolean(),
+	settings: clubCommunitySettingsSchema,
+});
+
+const postSlugInput = z.object({
+	slug: z.string().trim().min(1).max(64),
+	postSlug: z.string().trim().min(1).max(64),
+});
+
+const attachmentInputSchema = z.discriminatedUnion("kind", [
+	z.object({ kind: z.literal("work"), workId: z.string().trim().min(1).max(64) }),
+	z.object({ kind: z.literal("edition"), editionId: z.string().trim().min(1).max(64) }),
+]);
+
+export const updateCommunitySettingsContract = base
+	.route({
+		method: "PATCH",
+		path: "/club/{slug}/community/settings",
+		tags: ["club"],
+		summary: "Update club community settings",
+	})
+	.input(
+		z.object({
+			slug: z.string().trim().min(1).max(64),
+			communityEnabled: z.boolean().optional(),
+			canPost: clubCanPostSchema.optional(),
+			defaultCanPeopleComment: z.boolean().optional(),
+			defaultCanPeopleReact: z.boolean().optional(),
+		}),
+	)
+	.output(clubCommunitySettingsSchema);
+
+export const listCommunityFeedContract = base
+	.route({
+		method: "GET",
+		path: "/club/{slug}/feed",
+		tags: ["club"],
+		summary: "List club community feed",
+	})
+	.input(
+		slugInput.extend({
+			sort: communityFeedSortSchema.default("hot"),
+			topRange: communityTopRangeSchema.default("all"),
+			type: clubPostTypeSchema.optional(),
+			authorRole: clubMemberRoleSchema.optional(),
+			pinnedOnly: z.boolean().optional(),
+			cursor: z.string().optional(),
+			limit: z.number().int().min(1).max(50).optional(),
+		}),
+	)
+	.output(communityFeedPageSchema);
+
+export const getCommunityPostContract = base
+	.route({
+		method: "GET",
+		path: "/club/{slug}/posts/{postSlug}",
+		tags: ["club"],
+		summary: "Get a club community post",
+	})
+	.input(postSlugInput)
+	.output(communityPostDetailSchema);
+
+export const createCommunityPostContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/posts",
+		tags: ["club"],
+		summary: "Create a club community post",
+	})
+	.input(
+		slugInput.extend({
+			title: z.string().trim().min(1).max(200),
+			body: richTextDocumentSchema.nullable().optional(),
+			type: z.enum(["discussion", "announcement"]).optional(),
+			canPeopleComment: z.boolean().optional(),
+			canPeopleReact: z.boolean().optional(),
+			attachments: z.array(attachmentInputSchema).max(8).optional(),
+		}),
+	)
+	.output(communityPostDetailSchema);
+
+export const updateCommunityPostContract = base
+	.route({
+		method: "PATCH",
+		path: "/club/{slug}/posts/{postSlug}",
+		tags: ["club"],
+		summary: "Update a club community post",
+	})
+	.input(
+		postSlugInput.extend({
+			title: z.string().trim().min(1).max(200).optional(),
+			body: richTextDocumentSchema.nullable().optional(),
+			canPeopleComment: z.boolean().optional(),
+			canPeopleReact: z.boolean().optional(),
+			attachments: z.array(attachmentInputSchema).max(8).optional(),
+		}),
+	)
+	.output(communityPostDetailSchema);
+
+export const deleteCommunityPostContract = base
+	.route({
+		method: "DELETE",
+		path: "/club/{slug}/posts/{postSlug}",
+		tags: ["club"],
+		summary: "Delete a club community post",
+	})
+	.input(postSlugInput)
+	.output(z.object({ ok: z.literal(true) }));
+
+export const pinCommunityPostContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/posts/{postSlug}/pin",
+		tags: ["club"],
+		summary: "Pin or unpin a club community post",
+	})
+	.input(postSlugInput.extend({ pinned: z.boolean() }))
+	.output(communityPostDetailSchema);
+
+export const createCommunityCommentContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/posts/{postSlug}/comments",
+		tags: ["club"],
+		summary: "Create a comment or reply on a community post",
+	})
+	.input(
+		postSlugInput.extend({
+			parentId: z.uuid().nullable().optional(),
+			body: richTextDocumentSchema,
+		}),
+	)
+	.output(communityPostDetailSchema);
+
+export const deleteCommunityCommentContract = base
+	.route({
+		method: "DELETE",
+		path: "/club/{slug}/posts/{postSlug}/comments/{commentId}",
+		tags: ["club"],
+		summary: "Delete a community comment",
+	})
+	.input(postSlugInput.extend({ commentId: z.uuid() }))
+	.output(communityPostDetailSchema);
+
+export const toggleCommunityPostReactionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/posts/{postSlug}/reactions",
+		tags: ["club"],
+		summary: "Toggle a reaction on a community post",
+	})
+	.input(postSlugInput.extend({ emoji: z.string().min(1).max(16) }))
+	.output(communityPostDetailSchema);
+
+export const toggleCommunityCommentReactionContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/posts/{postSlug}/comments/{commentId}/reactions",
+		tags: ["club"],
+		summary: "Toggle a reaction on a community comment",
+	})
+	.input(
+		postSlugInput.extend({
+			commentId: z.uuid(),
+			emoji: z.string().min(1).max(16),
+		}),
+	)
+	.output(communityPostDetailSchema);
+
 export const clubContract = {
 	create: createClubContract,
 	update: updateClubContract,
@@ -938,4 +1227,15 @@ export const clubContract = {
 	createSessionDiscussionMessage: createSessionDiscussionMessageContract,
 	deleteSessionDiscussionMessage: deleteSessionDiscussionMessageContract,
 	toggleSessionDiscussionReaction: toggleSessionDiscussionReactionContract,
+	updateCommunitySettings: updateCommunitySettingsContract,
+	listCommunityFeed: listCommunityFeedContract,
+	getCommunityPost: getCommunityPostContract,
+	createCommunityPost: createCommunityPostContract,
+	updateCommunityPost: updateCommunityPostContract,
+	deleteCommunityPost: deleteCommunityPostContract,
+	pinCommunityPost: pinCommunityPostContract,
+	createCommunityComment: createCommunityCommentContract,
+	deleteCommunityComment: deleteCommunityCommentContract,
+	toggleCommunityPostReaction: toggleCommunityPostReactionContract,
+	toggleCommunityCommentReaction: toggleCommunityCommentReactionContract,
 };

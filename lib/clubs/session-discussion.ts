@@ -1,14 +1,17 @@
+import { isReactionEmoji, REACTION_EMOJIS, type ReactionEmoji } from "@/lib/reactions";
+
 export const SESSION_DISCUSSION_MAX_DEPTH = 5;
 
-export const SESSION_DISCUSSION_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"] as const;
-export type SessionDiscussionReactionEmoji = (typeof SESSION_DISCUSSION_REACTIONS)[number];
+/** @deprecated Prefer `REACTION_EMOJIS` from `@/lib/reactions`. */
+export const SESSION_DISCUSSION_REACTIONS = REACTION_EMOJIS;
+export type SessionDiscussionReactionEmoji = ReactionEmoji;
 
 export const SESSION_DISCUSSION_BODY_PLAIN_MAX = 5000;
 
 export function isSessionDiscussionReaction(
 	value: string,
 ): value is SessionDiscussionReactionEmoji {
-	return (SESSION_DISCUSSION_REACTIONS as readonly string[]).includes(value);
+	return isReactionEmoji(value);
 }
 
 export function canPostSessionDiscussion(status: string): boolean {

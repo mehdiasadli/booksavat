@@ -46,6 +46,12 @@ export const clubBooklistItemStatusEnum = pgEnum("club_booklist_item_status", [
 
 export const clubShortlistModeEnum = pgEnum("club_shortlist_mode", ["manual", "random"] as const);
 
+export const clubCanPostEnum = pgEnum("club_can_post", [
+	"all_members",
+	"moderators",
+	"admin_only",
+] as const);
+
 export const club = pgTable(
 	"club",
 	{
@@ -74,6 +80,12 @@ export const club = pgTable(
 			.$type<VoteChipsByRoleColumn>()
 			.notNull()
 			.default(sql`'{"admin":[1,2,3],"moderator":[1,2,3],"member":[1,2,3]}'::jsonb`),
+
+		/** Community feed settings. */
+		communityEnabled: boolean("community_enabled").default(true).notNull(),
+		canPost: clubCanPostEnum("can_post").default("all_members").notNull(),
+		defaultCanPeopleComment: boolean("default_can_people_comment").default(true).notNull(),
+		defaultCanPeopleReact: boolean("default_can_people_react").default(true).notNull(),
 	},
 	(table) => [
 		index("club_visibility_idx").on(table.visibility),

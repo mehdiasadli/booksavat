@@ -7,9 +7,13 @@ export const RICH_TEXT_ALLOWED_NODES = [
 	"text",
 	"hardBreak",
 	"blockquote",
+	"heading",
+	"bulletList",
+	"orderedList",
+	"listItem",
 ] as const;
 
-export const RICH_TEXT_ALLOWED_MARKS = ["bold", "italic", "underline", "link"] as const;
+export const RICH_TEXT_ALLOWED_MARKS = ["bold", "italic", "underline", "link", "strike"] as const;
 
 export type RichTextDocument = JSONContent;
 
@@ -115,6 +119,16 @@ function sanitizeNode(
 		return { ok: true, node: { type: "hardBreak" } };
 	}
 
+	let headingAttrs: { level: number } | undefined;
+	if (node.type === "heading") {
+		const attrs = isPlainObject(node.attrs) ? node.attrs : null;
+		const level = attrs && typeof attrs.level === "number" ? attrs.level : null;
+		if (level !== 2 && level !== 3) {
+			return { ok: false, error: "Heading level must be 2 or 3." };
+		}
+		headingAttrs = { level };
+	}
+
 	const content: JSONContent[] = [];
 	if (node.content != null) {
 		if (!Array.isArray(node.content)) {
@@ -136,6 +150,7 @@ function sanitizeNode(
 		ok: true,
 		node: {
 			type: node.type,
+			...(headingAttrs ? { attrs: headingAttrs } : {}),
 			...(content.length > 0 ? { content } : {}),
 		},
 	};
@@ -194,7 +209,12 @@ export function richTextPlainText(document: RichTextDocument | null | undefined)
 			if (node.content) {
 				walk(node.content);
 			}
-			if (node.type === "paragraph" || node.type === "blockquote") {
+			if (
+				node.type === "paragraph" ||
+				node.type === "blockquote" ||
+				node.type === "heading" ||
+				node.type === "listItem"
+			) {
 				parts.push("\n");
 			}
 		}
