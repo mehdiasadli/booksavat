@@ -14,8 +14,16 @@ export interface OpenLibraryClientOptions {
 	contact: string;
 	/** Optional fetch implementation (useful for tests). Defaults to global fetch. */
 	fetch?: typeof fetch;
-	/** Request timeout in milliseconds. Defaults to 15_000. */
+	/**
+	 * Request timeout in milliseconds. Defaults to 6_000.
+	 * Kept under undici's default connect timeout so callers fail fast.
+	 */
 	timeoutMs?: number;
+	/**
+	 * Extra attempts after a NETWORK_ERROR (timeout / connect failure).
+	 * Defaults to 0. Does not retry HTTP / validation errors.
+	 */
+	retries?: number;
 	/** Extra headers merged into every request. */
 	headers?: HeadersInit;
 }
@@ -28,12 +36,17 @@ export interface RequestOptions {
 	notFoundAsError?: boolean;
 }
 
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class OpenLibraryHttpClient {
 	readonly baseUrl: string;
 	readonly userAgent: string;
 	readonly contact: string;
 	private readonly fetchImpl: typeof fetch;
 	private readonly timeoutMs: number;
+	private readonly retries: number;
 	private readonly defaultHeaders: Headers;
 
 	constructor(options: OpenLibraryClientOptions) {
@@ -41,7 +54,8 @@ export class OpenLibraryHttpClient {
 		this.userAgent = options.userAgent.trim();
 		this.contact = options.contact.trim();
 		this.fetchImpl = options.fetch ?? fetch;
-		this.timeoutMs = options.timeoutMs ?? 15_000;
+		this.timeoutMs = options.timeoutMs ?? 6_000;
+		this.retries = Math.max(0, options.retries ?? 0);
 		this.defaultHeaders = new Headers(options.headers);
 		this.defaultHeaders.set("Accept", "application/json");
 		this.defaultHeaders.set("User-Agent", `${this.userAgent} (${this.contact})`);
@@ -131,6 +145,30 @@ export class OpenLibraryHttpClient {
 	}
 
 	private async request(url: string, externalSignal?: AbortSignal): Promise<Response> {
+		const attempts = 1 + this.retries;
+		let lastError: unknown;
+
+		for (let attempt = 0; attempt < attempts; attempt++) {
+			try {
+				return await this.requestOnce(url, externalSignal);
+			} catch (error) {
+				lastError = error;
+
+				const canRetry =
+					isNetworkError(error) && attempt < attempts - 1 && !externalSignal?.aborted;
+
+				if (!canRetry) {
+					throw error;
+				}
+
+				await sleep(250 * (attempt + 1));
+			}
+		}
+
+		throw lastError;
+	}
+
+	private async requestOnce(url: string, externalSignal?: AbortSignal): Promise<Response> {
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -165,4 +203,8 @@ export class OpenLibraryHttpClient {
 			externalSignal?.removeEventListener("abort", onAbort);
 		}
 	}
+}
+
+function isNetworkError(error: unknown): error is OpenLibraryError {
+	return error instanceof OpenLibraryError && error.code === "NETWORK_ERROR";
 }

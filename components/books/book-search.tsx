@@ -65,6 +65,8 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 		}),
 		enabled: enabled && open,
 		staleTime: 60_000,
+		// Open Library timeouts are common; default RQ retries multiply wait time.
+		retry: false,
 	});
 
 	const usersQuery = useQuery({
@@ -73,6 +75,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 		}),
 		enabled: enabled && open,
 		staleTime: 60_000,
+		retry: 1,
 	});
 
 	const clubsQuery = useQuery({
@@ -81,16 +84,30 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 		}),
 		enabled: enabled && open,
 		staleTime: 60_000,
+		retry: 1,
 	});
 
 	const showPanel = open && query.length > 0;
 	const isFetching = booksQuery.isFetching || usersQuery.isFetching || clubsQuery.isFetching;
-	const isError = booksQuery.isError || usersQuery.isError || clubsQuery.isError;
+	const hasSettledData = booksQuery.isSuccess || usersQuery.isSuccess || clubsQuery.isSuccess;
+	const totalFailure =
+		enabled &&
+		!isFetching &&
+		!hasSettledData &&
+		booksQuery.isError &&
+		usersQuery.isError &&
+		clubsQuery.isError;
 	const books = booksQuery.data?.items ?? [];
 	const users = usersQuery.data?.items ?? [];
 	const clubs = clubsQuery.data?.items ?? [];
 	const empty =
-		enabled && !isFetching && books.length === 0 && users.length === 0 && clubs.length === 0;
+		enabled &&
+		!isFetching &&
+		hasSettledData &&
+		books.length === 0 &&
+		users.length === 0 &&
+		clubs.length === 0 &&
+		!booksQuery.isError;
 
 	function clearAndClose() {
 		setOpen(false);
@@ -146,7 +163,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 						<p className="px-3 py-4 text-sm text-muted-foreground">
 							Type at least 2 characters to search.
 						</p>
-					) : isFetching && !booksQuery.data && !usersQuery.data && !clubsQuery.data ? (
+					) : isFetching && !hasSettledData ? (
 						<div className="space-y-2 p-2">
 							{["a", "b", "c"].map((key) => (
 								<div key={key} className="flex gap-3 px-2 py-2">
@@ -158,7 +175,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 								</div>
 							))}
 						</div>
-					) : isError ? (
+					) : totalFailure ? (
 						<p className="px-3 py-4 text-sm text-destructive">Search failed. Try again.</p>
 					) : empty ? (
 						<p className="px-3 py-4 text-sm text-muted-foreground">
@@ -230,6 +247,12 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 										) : null}
 									</Link>
 								))}
+
+								{booksQuery.isError ? (
+									<p className="px-3 py-3 text-sm text-destructive">
+										Books unavailable right now. Try again in a moment.
+									</p>
+								) : null}
 
 								{books.length > 0 ? (
 									<div className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">

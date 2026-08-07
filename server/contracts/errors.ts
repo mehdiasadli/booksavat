@@ -26,4 +26,7 @@ export const commonErrors = {
 		message: "Too many requests.",
 		data: z.object({ retryAfterSeconds: z.number().int().positive() }),
 	},
+	UPSTREAM_UNAVAILABLE: {
+		message: "An upstream service is temporarily unavailable.",
+	},
 };
