@@ -30,7 +30,25 @@ export type { ListWorkEditionsInput, Work, WorkEditionsResponse } from "./schema
  * const cover = olib.covers.bookUrl({ key: "olid", value: "OL44247403M", size: "L" });
  * ```
  */
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+	const parsed = Number(value);
+	return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+}
+
+function parseNonNegativeInt(value: string | undefined, fallback: number): number {
+	if (value === undefined || value === "") {
+		return fallback;
+	}
+
+	const parsed = Number(value);
+	return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback;
+}
+
 export const olib = createOpenLibrary({
 	userAgent: process.env.OLIB_USER_AGENT ?? "BookSavat",
 	contact: process.env.OLIB_CONTACT ?? "hello@booksavat.app",
+	/** Fail under undici's ~10s connect timeout so search UI does not hang. */
+	timeoutMs: parsePositiveInt(process.env.OLIB_TIMEOUT_MS, 6_000),
+	/** One quick retry for transient connect/timeout failures. */
+	retries: parseNonNegativeInt(process.env.OLIB_RETRIES, 1),
 });

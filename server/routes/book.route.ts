@@ -1,6 +1,7 @@
 import {
 	isBookNotFound,
 	isBookRateLimited,
+	isBookUpstreamUnavailable,
 	loadEdition,
 	loadWork,
 	loadWorkEditions,
@@ -14,6 +15,7 @@ function rethrowBookError(
 	errors: {
 		NOT_FOUND: (payload: { message: string }) => Error;
 		RATE_LIMITED: (payload: { message?: string; data: { retryAfterSeconds: number } }) => Error;
+		UPSTREAM_UNAVAILABLE: (payload: { message: string }) => Error;
 	},
 	notFoundMessage: string,
 ): never {
@@ -25,6 +27,12 @@ function rethrowBookError(
 		throw errors.RATE_LIMITED({
 			message: error.message,
 			data: { retryAfterSeconds: 30 },
+		});
+	}
+
+	if (isBookUpstreamUnavailable(error)) {
+		throw errors.UPSTREAM_UNAVAILABLE({
+			message: "Open Library is temporarily unavailable. Try again in a moment.",
 		});
 	}
 

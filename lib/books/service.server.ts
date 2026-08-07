@@ -1,5 +1,7 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
+
 import { normalizeWorkKey } from "@/lib/books/ids";
 import {
 	mapEditionDetail,
@@ -29,7 +31,9 @@ const SEARCH_FIELDS = [
 	"first_sentence",
 ] as const;
 
-export async function searchBooks(q: string, limit: number): Promise<BookSearchResult> {
+const SEARCH_CACHE_SECONDS = 60;
+
+async function fetchSearchBooks(q: string, limit: number): Promise<BookSearchResult> {
 	const response = await olib.search.works({
 		q,
 		limit,
@@ -40,6 +44,17 @@ export async function searchBooks(q: string, limit: number): Promise<BookSearchR
 		items: response.docs.map(mapSearchWorkDoc),
 		total: response.numFound ?? response.num_found ?? response.docs.length,
 	};
+}
+
+/** Short TTL cache so repeated queries skip flaky Open Library round-trips. */
+const getCachedSearchBooks = unstable_cache(
+	async (q: string, limit: number) => fetchSearchBooks(q, limit),
+	["book-search"],
+	{ revalidate: SEARCH_CACHE_SECONDS },
+);
+
+export async function searchBooks(q: string, limit: number): Promise<BookSearchResult> {
+	return getCachedSearchBooks(q.trim().toLowerCase(), limit);
 }
 
 export async function loadWork(workId: string): Promise<BookWorkDetail> {
@@ -108,4 +123,13 @@ export function isBookNotFound(error: unknown): boolean {
 
 export function isBookRateLimited(error: unknown): boolean {
 	return isOpenLibraryError(error) && error.code === "RATE_LIMITED";
+}
+
+export function isBookUpstreamUnavailable(error: unknown): boolean {
+	return (
+		isOpenLibraryError(error) &&
+		(error.code === "NETWORK_ERROR" ||
+			error.code === "HTTP_ERROR" ||
+			error.code === "INVALID_RESPONSE")
+	);
 }

@@ -46,4 +46,31 @@ describe("OpenLibraryHttpClient", () => {
 			code: "NOT_FOUND",
 		} satisfies Partial<OpenLibraryError>);
 	});
+
+	it("retries once on NETWORK_ERROR then succeeds", async () => {
+		const fetchMock = vi
+			.fn()
+			.mockRejectedValueOnce(new TypeError("fetch failed"))
+			.mockResolvedValueOnce(
+				Response.json({
+					key: "/works/OL45804W",
+					title: "Fantastic Mr Fox",
+				}),
+			);
+
+		const client = new OpenLibraryHttpClient({
+			userAgent: "TestApp",
+			contact: "test@example.com",
+			fetch: fetchMock as unknown as typeof fetch,
+			retries: 1,
+			timeoutMs: 1_000,
+		});
+
+		const work = await client.getJson(z.object({ key: z.string(), title: z.string().optional() }), {
+			path: "/works/OL45804W.json",
+		});
+
+		expect(work.title).toBe("Fantastic Mr Fox");
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
 });

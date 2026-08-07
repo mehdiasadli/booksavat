@@ -46,6 +46,7 @@ export function AddToBooklistDialog({ slug, mode }: AddToBooklistDialogProps) {
 		}),
 		enabled,
 		staleTime: 30_000,
+		retry: false,
 	});
 
 	const books = booksQuery.data?.items ?? [];
@@ -125,7 +126,9 @@ export function AddToBooklistDialog({ slug, mode }: AddToBooklistDialogProps) {
 								Searching…
 							</div>
 						) : booksQuery.isError ? (
-							<p className="px-3 py-4 text-sm text-destructive">Search failed. Try again.</p>
+							<p className="px-3 py-4 text-sm text-destructive">
+								Open Library is unavailable right now. Try again in a moment.
+							</p>
 						) : books.length === 0 ? (
 							<p className="px-3 py-4 text-sm text-muted-foreground">
 								No books found for “{debouncedQuery}”.
