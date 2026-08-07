@@ -123,9 +123,9 @@ export function WorkDetail({
 			</div>
 
 			{work.description ? (
-				<section className="max-w-3xl space-y-2">
+				<section className="w-full max-w-3xl min-w-0 space-y-2">
 					<h2 className="font-heading text-lg font-semibold tracking-tight">About</h2>
-					<p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground text-pretty">
+					<p className="max-w-full min-w-0 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground text-pretty [overflow-wrap:anywhere]">
 						{work.description}
 					</p>
 				</section>
