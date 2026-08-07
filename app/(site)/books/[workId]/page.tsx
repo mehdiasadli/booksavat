@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { WorkDetail } from "@/components/books/work-detail";
+import { listAuthorWorksCached } from "@/lib/authors/queries.server";
 import { tryWorkId } from "@/lib/books/ids";
 import { getBookWork, listBookEditions } from "@/lib/books/queries.server";
 import { APP_NAME } from "@/lib/constants";
@@ -31,9 +32,10 @@ export async function generateMetadata({ params }: WorkPageProps): Promise<Metad
 		};
 	}
 
+	const authorName = work.authors[0]?.name;
 	const description =
 		work.description?.slice(0, 160) ||
-		`Explore ${work.title}${work.authors[0] ? ` by ${work.authors[0]}` : ""} on ${APP_NAME}.`;
+		`Explore ${work.title}${authorName ? ` by ${authorName}` : ""} on ${APP_NAME}.`;
 
 	return buildMetadata({
 		title: work.title,
@@ -57,12 +59,24 @@ export default async function WorkPage({ params }: WorkPageProps) {
 		notFound();
 	}
 
+	const primaryAuthor = work.authors[0];
+	const related = primaryAuthor ? await listAuthorWorksCached(primaryAuthor.authorId, 12) : null;
+	const otherWorks =
+		primaryAuthor && related
+			? {
+					authorId: primaryAuthor.authorId,
+					authorName: primaryAuthor.name,
+					works: related.items.filter((item) => item.workId !== work.workId).slice(0, 8),
+				}
+			: null;
+
 	return (
 		<WorkDetail
 			work={work}
 			editions={editions.items}
 			editionTotal={editions.total}
 			editionNextOffset={editions.nextOffset}
+			otherWorks={otherWorks && otherWorks.works.length > 0 ? otherWorks : null}
 		/>
 	);
 }

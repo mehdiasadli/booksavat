@@ -5,6 +5,7 @@ import { Loader2, Lock, Search, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
+import { AuthorSearchItem } from "@/components/authors/author-search-item";
 import { BookSearchItem } from "@/components/books/book-search-item";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,15 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 		retry: false,
 	});
 
+	const authorsQuery = useQuery({
+		...orpc.author.search.queryOptions({
+			input: { q: debouncedQuery, limit: 5 },
+		}),
+		enabled: enabled && open,
+		staleTime: 60_000,
+		retry: false,
+	});
+
 	const usersQuery = useQuery({
 		...orpc.follow.searchUsers.queryOptions({
 			input: { q: debouncedQuery, limit: 5, offset: 0 },
@@ -88,16 +98,23 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 	});
 
 	const showPanel = open && query.length > 0;
-	const isFetching = booksQuery.isFetching || usersQuery.isFetching || clubsQuery.isFetching;
-	const hasSettledData = booksQuery.isSuccess || usersQuery.isSuccess || clubsQuery.isSuccess;
+	const isFetching =
+		booksQuery.isFetching ||
+		authorsQuery.isFetching ||
+		usersQuery.isFetching ||
+		clubsQuery.isFetching;
+	const hasSettledData =
+		booksQuery.isSuccess || authorsQuery.isSuccess || usersQuery.isSuccess || clubsQuery.isSuccess;
 	const totalFailure =
 		enabled &&
 		!isFetching &&
 		!hasSettledData &&
 		booksQuery.isError &&
+		authorsQuery.isError &&
 		usersQuery.isError &&
 		clubsQuery.isError;
 	const books = booksQuery.data?.items ?? [];
+	const authors = authorsQuery.data?.items ?? [];
 	const users = usersQuery.data?.items ?? [];
 	const clubs = clubsQuery.data?.items ?? [];
 	const empty =
@@ -105,9 +122,11 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 		!isFetching &&
 		hasSettledData &&
 		books.length === 0 &&
+		authors.length === 0 &&
 		users.length === 0 &&
 		clubs.length === 0 &&
-		!booksQuery.isError;
+		!booksQuery.isError &&
+		!authorsQuery.isError;
 
 	function clearAndClose() {
 		setOpen(false);
@@ -128,7 +147,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 					setOpen(true);
 				}}
 				onFocus={() => setOpen(true)}
-				placeholder={compact ? "Search…" : "Search books, people, clubs…"}
+				placeholder={compact ? "Search…" : "Search books, authors, people, clubs…"}
 				className="h-9 pr-9 pl-8"
 				role="combobox"
 				aria-expanded={showPanel}
@@ -179,7 +198,7 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 						<p className="px-3 py-4 text-sm text-destructive">Search failed. Try again.</p>
 					) : empty ? (
 						<p className="px-3 py-4 text-sm text-muted-foreground">
-							No books, people, or clubs found for “{debouncedQuery}”.
+							No books, authors, people, or clubs found for “{debouncedQuery}”.
 						</p>
 					) : (
 						<div className="max-h-96 overflow-y-auto overscroll-contain">
@@ -246,6 +265,25 @@ export function BookSearch({ className, compact }: BookSearchProps) {
 											/>
 										) : null}
 									</Link>
+								))}
+
+								{authorsQuery.isError ? (
+									<p className="px-3 py-3 text-sm text-destructive">
+										Authors unavailable right now. Try again in a moment.
+									</p>
+								) : null}
+
+								{authors.length > 0 ? (
+									<div className="px-3 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+										Authors
+									</div>
+								) : null}
+								{authors.map((author) => (
+									<AuthorSearchItem
+										key={author.authorId}
+										author={author}
+										onSelect={clearAndClose}
+									/>
 								))}
 
 								{booksQuery.isError ? (
