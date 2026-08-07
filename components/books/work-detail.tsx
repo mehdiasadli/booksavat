@@ -1,12 +1,16 @@
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Fragment } from "react";
 
 import { BookCover } from "@/components/books/book-cover";
 import { WorkEditions } from "@/components/books/work-editions";
+import { WorkOtherWorks } from "@/components/books/work-other-works";
 import { WorkStatusPanel } from "@/components/reading-logs/work-status-panel";
 import { AddToShelf } from "@/components/shelves/add-to-shelf";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import type { AuthorWorkSummary } from "@/server/contracts/author.contract";
 import type { BookEditionSummary, BookWorkDetail } from "@/server/contracts/book.contract";
 
 interface WorkDetailProps {
@@ -14,6 +18,11 @@ interface WorkDetailProps {
 	editions: BookEditionSummary[];
 	editionTotal: number;
 	editionNextOffset: number | null;
+	otherWorks?: {
+		authorId: string;
+		authorName: string;
+		works: AuthorWorkSummary[];
+	} | null;
 }
 
 function MetaList({ label, values }: { label: string; values: string[] }) {
@@ -35,7 +44,13 @@ function MetaList({ label, values }: { label: string; values: string[] }) {
 	);
 }
 
-export function WorkDetail({ work, editions, editionTotal, editionNextOffset }: WorkDetailProps) {
+export function WorkDetail({
+	work,
+	editions,
+	editionTotal,
+	editionNextOffset,
+	otherWorks,
+}: WorkDetailProps) {
 	return (
 		<article className="space-y-8">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-start">
@@ -63,7 +78,17 @@ export function WorkDetail({ work, editions, editionTotal, editionNextOffset }: 
 					{work.authors.length > 0 ? (
 						<p className="text-sm text-muted-foreground">
 							<span className="text-foreground">By </span>
-							{work.authors.join(", ")}
+							{work.authors.map((author, index) => (
+								<Fragment key={author.authorId}>
+									{index > 0 ? ", " : null}
+									<Link
+										href={`/authors/${author.authorId}`}
+										className="text-foreground underline-offset-4 hover:underline"
+									>
+										{author.name}
+									</Link>
+								</Fragment>
+							))}
 						</p>
 					) : null}
 
@@ -98,9 +123,9 @@ export function WorkDetail({ work, editions, editionTotal, editionNextOffset }: 
 			</div>
 
 			{work.description ? (
-				<section className="max-w-3xl space-y-2">
+				<section className="w-full max-w-3xl min-w-0 space-y-2">
 					<h2 className="font-heading text-lg font-semibold tracking-tight">About</h2>
-					<p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground text-pretty">
+					<p className="max-w-full min-w-0 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground text-pretty [overflow-wrap:anywhere]">
 						{work.description}
 					</p>
 				</section>
@@ -112,6 +137,17 @@ export function WorkDetail({ work, editions, editionTotal, editionNextOffset }: 
 				<MetaList label="People" values={work.subjectPeople} />
 				<MetaList label="Times" values={work.subjectTimes} />
 			</div>
+
+			{otherWorks ? (
+				<>
+					<Separator />
+					<WorkOtherWorks
+						authorId={otherWorks.authorId}
+						authorName={otherWorks.authorName}
+						works={otherWorks.works}
+					/>
+				</>
+			) : null}
 
 			<Separator />
 

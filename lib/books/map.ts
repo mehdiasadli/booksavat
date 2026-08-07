@@ -7,6 +7,7 @@ import {
 } from "@/lib/books/ids";
 import { type Edition, type SearchWorkDoc, unwrapTextValue, type Work } from "@/olib";
 import type {
+	BookAuthorRef,
 	BookEditionDetail,
 	BookEditionSummary,
 	BookSearchItem,
@@ -56,7 +57,7 @@ export function mapSearchWorkDoc(doc: SearchWorkDoc): BookSearchItem {
 
 export function mapWorkDetail(
 	work: Work,
-	options: { authorNames?: string[]; editionCount?: number | null } = {},
+	options: { authors?: BookAuthorRef[]; editionCount?: number | null } = {},
 ): BookWorkDetail {
 	const workId = normalizeWorkKey(work.key);
 	const coverUrl = coverUrlFromCoverId(work.covers?.[0], "L");
@@ -67,7 +68,7 @@ export function mapWorkDetail(
 		subtitle: work.subtitle?.trim() || null,
 		description: unwrapTextValue(work.description)?.trim() || null,
 		coverUrl,
-		authors: options.authorNames ?? [],
+		authors: options.authors ?? [],
 		subjects: work.subjects ?? [],
 		subjectPlaces: work.subject_places ?? [],
 		subjectTimes: work.subject_times ?? [],

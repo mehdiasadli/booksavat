@@ -5,7 +5,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
 	title: "Books",
-	description: "Search Open Library works and explore editions on BookSavat.",
+	description: "Search Open Library works and authors, then explore editions on BookSavat.",
 	path: "/books",
 });
 
@@ -17,8 +17,8 @@ export default function BooksPage() {
 					Find a book
 				</h1>
 				<p className="text-sm text-muted-foreground text-pretty sm:text-base">
-					Search millions of works from Open Library. Pick a title to see details, subjects, and
-					editions.
+					Search millions of works and authors from Open Library. Pick a title or writer to explore
+					details and editions.
 				</p>
 			</div>
 			<BookSearch />
