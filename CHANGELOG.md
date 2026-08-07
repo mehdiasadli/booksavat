@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.6.0...booksavat-v0.6.1) (2026-08-07)
+
+
+### Bug Fixes
+
+* Harden book search against Open Library timeouts ([#47](https://github.com/mehdiasadli/booksavat/issues/47)) ([c7b3ac2](https://github.com/mehdiasadli/booksavat/commit/c7b3ac29b2adc334b764955492b6001c500f49cd))
+
 ## [0.6.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.5.0...booksavat-v0.6.0) (2026-08-06)
 
 
