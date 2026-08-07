@@ -2,6 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 
+import { tryAuthorId } from "@/lib/authors/ids";
 import { normalizeWorkKey } from "@/lib/books/ids";
 import {
 	mapEditionDetail,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/books/map";
 import { isOpenLibraryError, olib } from "@/olib";
 import type {
+	BookAuthorRef,
 	BookEditionDetail,
 	BookEditionSummary,
 	BookSearchResult,
@@ -63,12 +65,21 @@ export async function loadWork(workId: string): Promise<BookWorkDetail> {
 		.map((entry) => entry.author?.key)
 		.filter((key): key is string => Boolean(key));
 
-	const [authorNames, editions] = await Promise.all([
+	const [authors, editions] = await Promise.all([
 		Promise.all(
-			authorKeys.slice(0, 8).map(async (key) => {
+			authorKeys.slice(0, 8).map(async (key): Promise<BookAuthorRef | null> => {
+				const authorId = tryAuthorId(key);
+				if (!authorId) {
+					return null;
+				}
+
 				try {
-					const author = await olib.authors.get(key);
-					return author.name?.trim() || null;
+					const author = await olib.authors.get(authorId);
+					const name = author.name?.trim() || author.personal_name?.trim();
+					if (!name) {
+						return null;
+					}
+					return { authorId, name };
 				} catch {
 					return null;
 				}
@@ -78,7 +89,7 @@ export async function loadWork(workId: string): Promise<BookWorkDetail> {
 	]);
 
 	return mapWorkDetail(work, {
-		authorNames: authorNames.filter((name): name is string => Boolean(name)),
+		authors: authors.filter((author): author is BookAuthorRef => author != null),
 		editionCount: editions?.size ?? null,
 	});
 }

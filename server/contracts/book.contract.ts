@@ -2,6 +2,14 @@ import * as z from "zod";
 
 import { base, paginated, paginationInputSchema } from "@/server/contracts/base.contract";
 
+/** Linked author ref on a work detail page. */
+export const bookAuthorRefSchema = z.object({
+	authorId: z.string(),
+	name: z.string(),
+});
+
+export type BookAuthorRef = z.infer<typeof bookAuthorRefSchema>;
+
 /** App-facing search hit — not a raw Open Library document. */
 export const bookSearchItemSchema = z.object({
 	workId: z.string(),
@@ -46,7 +54,7 @@ export const bookWorkDetailSchema = z.object({
 	subtitle: z.string().nullable(),
 	description: z.string().nullable(),
 	coverUrl: z.string().nullable(),
-	authors: z.array(z.string()),
+	authors: z.array(bookAuthorRefSchema),
 	subjects: z.array(z.string()),
 	subjectPlaces: z.array(z.string()),
 	subjectTimes: z.array(z.string()),
