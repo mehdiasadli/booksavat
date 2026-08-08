@@ -1,0 +1,21 @@
+---
+description: Drizzle schema and migration workflow — generate, never push
+globs: db/**/*,drizzle/**/*,drizzle.config.ts
+alwaysApply: false
+---
+
+# Database migrations
+
+Full detail: [docs/DATABASE.md](docs/DATABASE.md).
+
+1. Edit schema under `db/schemas/` (and relations if needed).
+2. `bun run db:generate` — creates `drizzle/<timestamp>_*/`.
+3. **Read the SQL** before applying. Rename/drop+add mistakes destroy data; fix SQL by hand if needed.
+4. `bun run db:migrate`.
+5. Commit **schema + `drizzle/` together** in the same change.
+
+## Never
+
+- `drizzle-kit push` (or any live schema push without migration files).
+- Edit applied migration folders after they have shipped.
+- Ship a schema change without a generated migration (CI regenerates and fails on drift).

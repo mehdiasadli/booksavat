@@ -3,6 +3,14 @@
 Start with [docs/SETUP.md](docs/SETUP.md) to get the app running, and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the pieces fit together.
 
+## Cursor / agents
+
+Coding agents should read [AGENTS.md](AGENTS.md) first. Project conventions for
+Cursor live under [`.cursor/rules/`](.cursor/rules/) (scoped rules) and
+[`.cursor/skills/`](.cursor/skills/) (on-demand workflows such as oRPC features,
+Drizzle migrations, shipping a PR, and read-only code review). Prefer those over
+copying long docs into every chat — deep detail stays in `docs/`.
+
 ## Workflow
 
 Branch from `main`, work, open a PR, merge. There is nothing more to it.

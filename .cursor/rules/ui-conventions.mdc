@@ -1,0 +1,31 @@
+---
+description: App Router and component UI conventions for BookSavat
+globs: components/**/*,app/**/*
+alwaysApply: false
+---
+
+# UI conventions
+
+## Match the neighborhood
+
+- Copy patterns from nearby components (dialogs, search, shelves, clubs) instead of inventing new layout systems.
+- Reuse existing primitives: `@/components/ui/*`, `BookCover`, `BookSearch`, shelf/club dialogs.
+- Tabs for indentation; Biome formats — do not fight the formatter.
+
+## Client vs server
+
+- Default App Router pages/layouts are Server Components.
+- Add `"use client"` only for hooks, browser APIs, or interactive widgets.
+- Keep data fetching on the server when possible (`lib/**/queries.server.ts`, oRPC SSR client). Client mutations use `client` / `orpc` from `@/lib/orpc` + TanStack Query.
+
+## UX patterns already in the app
+
+- Debounced search (≥2 chars), `retry: false` for flaky Open Library calls.
+- Dialogs that stay open for multi-add flows when that is the product intent.
+- Owner-only controls gated by session / `isOwner`, not by hiding broken buttons for everyone.
+- Toasts via `sonner` for mutation success/error.
+
+## Routing / SEO
+
+- Public indexable routes may need `app/sitemap.ts` updates — see `.cursor/rules/sitemap.mdc`.
+- Catalog entities (OL works/authors) use on-demand metadata; do not enumerate the whole OL catalog in the sitemap.
