@@ -1,5 +1,6 @@
 import { client } from "@/lib/orpc";
 import type { ImageMimeType, ImageUploadPurpose } from "@/lib/storage/constants";
+import { PDF_MIME_TYPE } from "@/lib/storage/constants";
 
 export async function uploadPublicImage(options: {
 	purpose: ImageUploadPurpose;
@@ -31,4 +32,31 @@ export async function uploadPublicImage(options: {
 		key: presigned.key,
 		publicUrl: presigned.publicUrl,
 	};
+}
+
+export async function uploadPrivateBooklistPdf(options: {
+	slug: string;
+	workId: string;
+	file: File;
+}): Promise<{ key: string }> {
+	const presigned = await client.storage.createPrivatePdfUploadUrl({
+		slug: options.slug,
+		workId: options.workId,
+		contentLength: options.file.size,
+	});
+
+	const response = await fetch(presigned.uploadUrl, {
+		method: "PUT",
+		headers: {
+			"Content-Type": PDF_MIME_TYPE,
+			"Content-Length": String(options.file.size),
+		},
+		body: options.file,
+	});
+
+	if (!response.ok) {
+		throw new Error("Upload to storage failed");
+	}
+
+	return { key: presigned.key };
 }

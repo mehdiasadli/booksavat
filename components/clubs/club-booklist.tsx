@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { BookCover } from "@/components/books/book-cover";
 import { AddToBooklistDialog } from "@/components/clubs/add-to-booklist-dialog";
+import { BooklistPdfPanel } from "@/components/clubs/booklist-pdf-panel";
 import { ClubSubnav } from "@/components/clubs/club-subnav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -169,20 +170,29 @@ export function ClubBooklist({ initial }: ClubBooklistProps) {
 											</div>
 										</div>
 									</Link>
-									{club.canRemoveFromBooklist ? (
-										<Button
-											size="sm"
-											variant="ghost"
-											disabled={busy}
-											onClick={() => {
-												if (window.confirm(`Remove “${item.title}” from the booklist?`)) {
-													remove.mutate(item.workId);
-												}
-											}}
-										>
-											Remove
-										</Button>
-									) : null}
+									<div className="flex shrink-0 items-center gap-2">
+										<BooklistPdfPanel
+											slug={club.slug}
+											workId={item.workId}
+											title={item.title}
+											documents={item.documents}
+											canUpload={club.canUploadBooklistPdf}
+										/>
+										{club.canRemoveFromBooklist ? (
+											<Button
+												size="sm"
+												variant="ghost"
+												disabled={busy}
+												onClick={() => {
+													if (window.confirm(`Remove “${item.title}” from the booklist?`)) {
+														remove.mutate(item.workId);
+													}
+												}}
+											>
+												Remove
+											</Button>
+										) : null}
+									</div>
 								</li>
 							))}
 						</ul>
