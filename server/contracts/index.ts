@@ -9,6 +9,7 @@ import { healthContract } from "@/server/contracts/health.contract";
 import { readingLogContract } from "@/server/contracts/reading-log.contract";
 import { sessionContract } from "@/server/contracts/session.contract";
 import { shelfContract } from "@/server/contracts/shelf.contract";
+import { storageContract } from "@/server/contracts/storage.contract";
 import { userContract } from "@/server/contracts/user.contract";
 
 /**
@@ -26,6 +27,7 @@ export const contract = {
 	feedback: feedbackContract,
 	follow: followContract,
 	club: clubContract,
+	storage: storageContract,
 };
 
 export type AppContract = typeof contract;
@@ -43,4 +45,5 @@ export * from "@/server/contracts/health.contract";
 export * from "@/server/contracts/reading-log.contract";
 export * from "@/server/contracts/session.contract";
 export * from "@/server/contracts/shelf.contract";
+export * from "@/server/contracts/storage.contract";
 export * from "@/server/contracts/user.contract";

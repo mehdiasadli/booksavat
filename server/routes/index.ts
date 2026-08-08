@@ -8,6 +8,7 @@ import { healthRouter } from "@/server/routes/health.route";
 import { readingLogRouter } from "@/server/routes/reading-log.route";
 import { sessionRouter } from "@/server/routes/session.route";
 import { shelfRouter } from "@/server/routes/shelf.route";
+import { storageRouter } from "@/server/routes/storage.route";
 import { userRouter } from "@/server/routes/user.route";
 
 /**
@@ -26,4 +27,5 @@ export const router = implementer.router({
 	feedback: feedbackRouter,
 	follow: followRouter,
 	club: clubRouter,
+	storage: storageRouter,
 });
