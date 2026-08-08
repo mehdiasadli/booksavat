@@ -47,6 +47,7 @@ import {
 	setMemberRole,
 	transferAdmin,
 	updateClub,
+	updateClubImages,
 } from "@/lib/clubs/service.server";
 import {
 	abandonReadingSession,
@@ -107,6 +108,18 @@ export const update = protectedProcedure.club.update.handler(async ({ input, con
 	if (!result.ok) throw mapServiceError(errors, result);
 	return result.data;
 });
+
+export const updateImages = protectedProcedure.club.updateImages.handler(
+	async ({ input, context, errors }) => {
+		const { slug, avatarKey, coverKey } = input;
+		const result = await updateClubImages(context.db, context.viewer.user.id, slug, {
+			avatarKey,
+			coverKey,
+		});
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
 
 export const deleteClubRoute = protectedProcedure.club.delete.handler(
 	async ({ input, context, errors }) => {
@@ -809,6 +822,7 @@ export const toggleCommunityCommentReactionRoute =
 export const clubRouter = {
 	create,
 	update,
+	updateImages,
 	delete: deleteClubRoute,
 	getBySlug,
 	listMine,

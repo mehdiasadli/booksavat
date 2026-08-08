@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ClubImageUploads } from "@/components/clubs/club-image-uploads";
 import { ClubShareSheet } from "@/components/clubs/club-share-sheet";
 import { ClubSubnav } from "@/components/clubs/club-subnav";
 import { Button } from "@/components/ui/button";
@@ -220,6 +221,8 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 						<option value="invite_only">Invite only — hidden from search</option>
 					</select>
 				</div>
+
+				<ClubImageUploads club={club} />
 
 				<section className="grid gap-4 border-t border-border pt-6">
 					<div className="grid gap-1">
