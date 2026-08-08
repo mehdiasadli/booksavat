@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.0](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.6.1...booksavat-v0.7.0) (2026-08-08)
+
+
+### Features
+
+* Add books from shelf and add to club from work ([#51](https://github.com/mehdiasadli/booksavat/issues/51)) ([baf2eb7](https://github.com/mehdiasadli/booksavat/commit/baf2eb7604a1f8dd5f95ef3d0e072e15a000bbdc))
+* implement authors search, author page, works from this author section ([#49](https://github.com/mehdiasadli/booksavat/issues/49)) ([562b18b](https://github.com/mehdiasadli/booksavat/commit/562b18bf97afe67ab001c66fe47ddbd3dfc64cb2))
+* Integrate Cloudflare R2 object storage ([#53](https://github.com/mehdiasadli/booksavat/issues/53)) ([d2b6a6b](https://github.com/mehdiasadli/booksavat/commit/d2b6a6b1df53615948c03e2db55b2ba4d3b32757))
+* private booklist PDFs and upload settings ([#55](https://github.com/mehdiasadli/booksavat/issues/55)) ([41188ca](https://github.com/mehdiasadli/booksavat/commit/41188cac8e715146fc6101b9f52c08bf9de6c570))
+* user avatar and club avatar/cover uploads ([#54](https://github.com/mehdiasadli/booksavat/issues/54)) ([d2c6dd4](https://github.com/mehdiasadli/booksavat/commit/d2c6dd446417c0d5317aaea88608675148495d94))
+
 ## [0.6.1](https://github.com/mehdiasadli/booksavat/compare/booksavat-v0.6.0...booksavat-v0.6.1) (2026-08-07)
 
 
