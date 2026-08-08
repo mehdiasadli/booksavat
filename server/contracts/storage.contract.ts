@@ -6,6 +6,7 @@ import {
 	MAX_AVATAR_BYTES,
 	MAX_CLUB_COVER_BYTES,
 	MAX_DEV_PING_BYTES,
+	MAX_PDF_BYTES,
 } from "@/lib/storage/constants";
 import { base } from "@/server/contracts/base.contract";
 
@@ -95,8 +96,31 @@ export const createPublicImageUploadUrlContract = base
 		}),
 	);
 
+export const createPrivatePdfUploadUrlContract = base
+	.route({
+		method: "POST",
+		path: "/storage/pdfs/upload-url",
+		tags: ["storage"],
+		summary: "Presign a short-lived R2 PUT for a private booklist PDF",
+	})
+	.input(
+		z.object({
+			slug: z.string().trim().min(1).max(64),
+			workId: z.string().trim().min(1).max(64),
+			contentLength: z.number().int().positive().max(MAX_PDF_BYTES),
+		}),
+	)
+	.output(
+		z.object({
+			uploadUrl: z.string().url(),
+			key: z.string().min(1),
+			expiresInSeconds: z.number().int().positive(),
+		}),
+	);
+
 export const storageContract = {
 	createDevUploadUrl: createDevUploadUrlContract,
 	verifyDevObject: verifyDevObjectContract,
 	createPublicImageUploadUrl: createPublicImageUploadUrlContract,
+	createPrivatePdfUploadUrl: createPrivatePdfUploadUrlContract,
 };

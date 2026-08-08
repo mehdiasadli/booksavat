@@ -39,6 +39,8 @@ export type ClubBooklistSettings = {
 	membersCanRemove: boolean;
 	modsCanPropose: boolean;
 	membersCanPropose: boolean;
+	modsCanUploadPdf: boolean;
+	membersCanUploadPdf: boolean;
 	shortlistMode: ClubShortlistMode;
 	defaultShortlistSize: number;
 	voteChipsByRole: VoteChipsByRole;
@@ -51,6 +53,8 @@ export const DEFAULT_CLUB_BOOKLIST_SETTINGS: ClubBooklistSettings = {
 	membersCanRemove: false,
 	modsCanPropose: true,
 	membersCanPropose: true,
+	modsCanUploadPdf: true,
+	membersCanUploadPdf: false,
 	shortlistMode: "manual",
 	defaultShortlistSize: CLUB_DEFAULT_SHORTLIST_SIZE,
 	voteChipsByRole: DEFAULT_VOTE_CHIPS_BY_ROLE,

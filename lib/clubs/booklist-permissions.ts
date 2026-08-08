@@ -49,14 +49,26 @@ export function canModerateBooklistProposals(membership: ViewerMembership): bool
 	return isActive(membership) && membership.role === "admin";
 }
 
+/** Admin always can upload PDFs; otherwise role toggles apply. */
+export function canUploadBooklistPdf(
+	membership: ViewerMembership,
+	settings: Pick<ClubBooklistSettings, "modsCanUploadPdf" | "membersCanUploadPdf">,
+): boolean {
+	if (!isActive(membership)) return false;
+	if (membership.role === "admin") return true;
+	if (membership.role === "moderator") return settings.modsCanUploadPdf;
+	return settings.membersCanUploadPdf;
+}
+
 export function booklistSettingsFromRoleFlags(
 	role: ClubMemberRole,
 	settings: ClubBooklistSettings,
-): { canAdd: boolean; canPropose: boolean; canRemove: boolean } {
+): { canAdd: boolean; canPropose: boolean; canRemove: boolean; canUploadPdf: boolean } {
 	const membership: ViewerMembership = { role, status: "active" };
 	return {
 		canAdd: canAddToBooklist(membership, settings),
 		canPropose: canProposeToBooklist(membership, settings),
 		canRemove: canRemoveFromBooklist(membership, settings),
+		canUploadPdf: canUploadBooklistPdf(membership, settings),
 	};
 }

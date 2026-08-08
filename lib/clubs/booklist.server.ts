@@ -7,10 +7,15 @@ import { club, clubBooklistItem, clubMembership, feedback, readingLog, user } fr
 import { coverUrlFromCoverId } from "@/lib/books/covers";
 import { tryWorkId } from "@/lib/books/ids";
 import {
+	type BooklistDocumentDto,
+	loadDocumentsForBooklistItems,
+} from "@/lib/clubs/booklist-pdfs.server";
+import {
 	canAddToBooklist,
 	canModerateBooklistProposals,
 	canProposeToBooklist,
 	canRemoveFromBooklist,
+	canUploadBooklistPdf,
 } from "@/lib/clubs/booklist-permissions";
 import {
 	CLUB_SHORTLIST_SIZE_MAX,
@@ -49,6 +54,7 @@ export type BooklistItemDto = {
 	};
 	viewerReadingStatus: ViewerReadingStatus | null;
 	viewerHasFeedback: boolean;
+	documents: BooklistDocumentDto[];
 };
 
 type ServiceError = {
@@ -75,6 +81,8 @@ function settingsFromClub(row: typeof club.$inferSelect): ClubBooklistSettings {
 		membersCanRemove: row.membersCanRemove,
 		modsCanPropose: row.modsCanPropose,
 		membersCanPropose: row.membersCanPropose,
+		modsCanUploadPdf: row.modsCanUploadPdf,
+		membersCanUploadPdf: row.membersCanUploadPdf,
 		shortlistMode: row.shortlistMode,
 		defaultShortlistSize: row.defaultShortlistSize,
 		voteChipsByRole: normalizeVoteChips(row.voteChipsByRole) ?? DEFAULT_VOTE_CHIPS_BY_ROLE,
@@ -170,6 +178,7 @@ async function toItemDto(
 		readingByWork: Map<string, ViewerReadingStatus>;
 		feedbackWorks: Set<string>;
 	},
+	documents: BooklistDocumentDto[] = [],
 ): Promise<BooklistItemDto> {
 	const preview = await hydrateWorkPreview(row.item.workId);
 	return {
@@ -188,6 +197,7 @@ async function toItemDto(
 		},
 		viewerReadingStatus: indicators.readingByWork.get(row.item.workId) ?? null,
 		viewerHasFeedback: indicators.feedbackWorks.has(row.item.workId),
+		documents,
 	};
 }
 
@@ -222,6 +232,8 @@ export async function updateBooklistSettings(
 	if (patch.membersCanRemove !== undefined) next.membersCanRemove = patch.membersCanRemove;
 	if (patch.modsCanPropose !== undefined) next.modsCanPropose = patch.modsCanPropose;
 	if (patch.membersCanPropose !== undefined) next.membersCanPropose = patch.membersCanPropose;
+	if (patch.modsCanUploadPdf !== undefined) next.modsCanUploadPdf = patch.modsCanUploadPdf;
+	if (patch.membersCanUploadPdf !== undefined) next.membersCanUploadPdf = patch.membersCanUploadPdf;
 	if (patch.shortlistMode !== undefined)
 		next.shortlistMode = patch.shortlistMode as ClubShortlistMode;
 
@@ -292,8 +304,14 @@ export async function listBooklist(
 	]);
 
 	const workIds = rows.map((r) => r.item.workId);
-	const indicators = await loadViewerIndicators(db, viewerUserId, workIds);
-	const items = await Promise.all(rows.map((r) => toItemDto(r, indicators)));
+	const itemIds = rows.map((r) => r.item.id);
+	const [indicators, documentsByItem] = await Promise.all([
+		loadViewerIndicators(db, viewerUserId, workIds),
+		loadDocumentsForBooklistItems(db, itemIds),
+	]);
+	const items = await Promise.all(
+		rows.map((r) => toItemDto(r, indicators, documentsByItem.get(r.item.id) ?? [])),
+	);
 	const total = Number(totalRow[0]?.value ?? 0);
 	const consumed = pagination.offset + items.length;
 
@@ -333,8 +351,14 @@ export async function listBooklistProposals(
 		.orderBy(asc(clubBooklistItem.createdAt));
 
 	const workIds = rows.map((r) => r.item.workId);
-	const indicators = await loadViewerIndicators(db, viewerUserId, workIds);
-	const items = await Promise.all(rows.map((r) => toItemDto(r, indicators)));
+	const itemIds = rows.map((r) => r.item.id);
+	const [indicators, documentsByItem] = await Promise.all([
+		loadViewerIndicators(db, viewerUserId, workIds),
+		loadDocumentsForBooklistItems(db, itemIds),
+	]);
+	const items = await Promise.all(
+		rows.map((r) => toItemDto(r, indicators, documentsByItem.get(r.item.id) ?? [])),
+	);
 	return ok({ items });
 }
 
@@ -543,6 +567,7 @@ export function clubBooklistCapabilities(
 		canProposeToBooklist: canProposeToBooklist(membership, settings),
 		canRemoveFromBooklist: canRemoveFromBooklist(membership, settings),
 		canModerateBooklistProposals: canModerateBooklistProposals(membership),
+		canUploadBooklistPdf: canUploadBooklistPdf(membership, settings),
 	};
 }
 
