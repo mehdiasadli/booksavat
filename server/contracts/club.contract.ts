@@ -574,6 +574,27 @@ export const addBooklistItemContract = base
 	.input(workIdInput)
 	.output(clubBooklistItemSchema);
 
+export const eligibleClubForWorkSchema = z.object({
+	id: z.uuid(),
+	name: z.string(),
+	slug: z.string(),
+	canAdd: z.boolean(),
+	canPropose: z.boolean(),
+	booklistStatus: clubBooklistItemStatusSchema.nullable(),
+});
+
+export type EligibleClubForWorkDto = z.infer<typeof eligibleClubForWorkSchema>;
+
+export const listEligibleClubsForWorkContract = base
+	.route({
+		method: "GET",
+		path: "/club/eligible-for-work/{workId}",
+		tags: ["club"],
+		summary: "List clubs where the viewer can add or propose a work",
+	})
+	.input(z.object({ workId: z.string().trim().min(1).max(64) }))
+	.output(z.object({ clubs: z.array(eligibleClubForWorkSchema) }));
+
 export const approveBooklistProposalContract = base
 	.route({
 		method: "POST",
@@ -1205,6 +1226,7 @@ export const clubContract = {
 	updateBooklistSettings: updateBooklistSettingsContract,
 	listBooklist: listBooklistContract,
 	listBooklistProposals: listBooklistProposalsContract,
+	listEligibleForWork: listEligibleClubsForWorkContract,
 	addBooklistItem: addBooklistItemContract,
 	approveBooklistProposal: approveBooklistProposalContract,
 	rejectBooklistProposal: rejectBooklistProposalContract,
