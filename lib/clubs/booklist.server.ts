@@ -545,3 +545,62 @@ export function clubBooklistCapabilities(
 		canModerateBooklistProposals: canModerateBooklistProposals(membership),
 	};
 }
+
+export type EligibleClubForWork = {
+	id: string;
+	name: string;
+	slug: string;
+	canAdd: boolean;
+	canPropose: boolean;
+	booklistStatus: ClubBooklistItemStatus | null;
+};
+
+/** Clubs where the viewer can add or propose, with presence of this work on each booklist. */
+export async function listEligibleClubsForWork(
+	db: Database,
+	viewerUserId: string,
+	rawWorkId: string,
+): Promise<ServiceResult<{ clubs: EligibleClubForWork[] }>> {
+	const workId = tryWorkId(rawWorkId);
+	if (!workId) return fail("bad_request", "Invalid work id");
+
+	const rows = await db
+		.select({
+			club,
+			role: clubMembership.role,
+			status: clubMembership.status,
+			booklistStatus: clubBooklistItem.status,
+		})
+		.from(clubMembership)
+		.innerJoin(club, eq(club.id, clubMembership.clubId))
+		.leftJoin(
+			clubBooklistItem,
+			and(eq(clubBooklistItem.clubId, club.id), eq(clubBooklistItem.workId, workId)),
+		)
+		.where(and(eq(clubMembership.userId, viewerUserId), eq(clubMembership.status, "active")))
+		.orderBy(asc(club.name));
+
+	const clubs: EligibleClubForWork[] = [];
+
+	for (const row of rows) {
+		const membership: ViewerMembership = { role: row.role, status: row.status };
+		const settings = settingsFromClub(row.club);
+		const canAdd = canAddToBooklist(membership, settings);
+		const canPropose = canProposeToBooklist(membership, settings);
+
+		if (!canAdd && !canPropose) {
+			continue;
+		}
+
+		clubs.push({
+			id: row.club.id,
+			name: row.club.name,
+			slug: row.club.slug,
+			canAdd,
+			canPropose,
+			booklistStatus: row.booklistStatus ?? null,
+		});
+	}
+
+	return ok({ clubs });
+}

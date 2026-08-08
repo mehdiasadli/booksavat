@@ -5,6 +5,7 @@ import { Fragment } from "react";
 import { BookCover } from "@/components/books/book-cover";
 import { WorkEditions } from "@/components/books/work-editions";
 import { WorkOtherWorks } from "@/components/books/work-other-works";
+import { AddToClubDialog } from "@/components/clubs/add-to-club-dialog";
 import { WorkStatusPanel } from "@/components/reading-logs/work-status-panel";
 import { AddToShelf } from "@/components/shelves/add-to-shelf";
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +106,7 @@ export function WorkDetail({
 
 					<div className="flex flex-wrap items-center gap-2">
 						<AddToShelf workId={work.workId} />
+						<AddToClubDialog workId={work.workId} />
 						<Button
 							variant="outline"
 							size="sm"

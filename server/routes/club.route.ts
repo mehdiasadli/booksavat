@@ -3,6 +3,7 @@ import {
 	approveBooklistProposal,
 	listBooklist,
 	listBooklistProposals,
+	listEligibleClubsForWork,
 	rejectBooklistProposal,
 	removeBooklistItem,
 	updateBooklistSettings,
@@ -337,6 +338,14 @@ export const listBooklistRoute = publicProcedure.club.listBooklist.handler(
 export const listBooklistProposalsRoute = protectedProcedure.club.listBooklistProposals.handler(
 	async ({ input, context, errors }) => {
 		const result = await listBooklistProposals(context.db, input.slug, context.viewer.user.id);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const listEligibleForWork = protectedProcedure.club.listEligibleForWork.handler(
+	async ({ input, context, errors }) => {
+		const result = await listEligibleClubsForWork(context.db, context.viewer.user.id, input.workId);
 		if (!result.ok) throw mapServiceError(errors, result);
 		return result.data;
 	},
@@ -826,6 +835,7 @@ export const clubRouter = {
 	updateBooklistSettings: updateBooklistSettingsRoute,
 	listBooklist: listBooklistRoute,
 	listBooklistProposals: listBooklistProposalsRoute,
+	listEligibleForWork,
 	addBooklistItem: addBooklistItemRoute,
 	approveBooklistProposal: approveBooklistProposalRoute,
 	rejectBooklistProposal: rejectBooklistProposalRoute,
