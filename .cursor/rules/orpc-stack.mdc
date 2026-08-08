@@ -1,0 +1,24 @@
+---
+description: Contract-first oRPC layering for server and *.server.ts code
+globs: server/**/*,lib/**/*.server.ts
+alwaysApply: false
+---
+
+# oRPC stack
+
+Full detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Order of work for a new procedure
+
+1. **Contract** in `server/contracts/*.contract.ts` — input/output Zod, route metadata, errors via `base` / `commonErrors`.
+2. Wire into `server/contracts/index.ts` (`contract` object + re-exports).
+3. **Service** in `lib/**/*.server.ts` — DB/business logic; return typed results or service `ok`/`fail` patterns used nearby.
+4. **Route** in `server/routes/*.route.ts` — `publicProcedure` / `protectedProcedure` / role procedures; map service errors to contract errors.
+5. Wire into `server/routes/index.ts`.
+6. Client: `orpc.*.queryOptions` / `client.*.*` from `@/lib/orpc` — do not invent parallel fetch wrappers.
+
+## Constraints
+
+- Contracts: **schemas and metadata only** — no handlers, no `db`, no `server-only` side effects (safe for client import).
+- Prefer shared errors (`UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`, `RATE_LIMITED`, `UPSTREAM_UNAVAILABLE`, …) so the client can narrow with `isDefinedError`.
+- Inject `db` / session via procedure middleware; tests can pass context (see `server/test-support.ts`).
