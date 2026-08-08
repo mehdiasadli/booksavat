@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AddBooksToShelfDialog } from "@/components/shelves/add-books-to-shelf-dialog";
 import { ShelfSettingsMenu } from "@/components/shelves/shelf-settings-menu";
 import { shelfVisibilityLabel } from "@/components/shelves/shelf-visibility-label";
 import { SortableShelfItems } from "@/components/shelves/sortable-shelf-items";
@@ -53,7 +54,18 @@ export function ShelfDetail({ username, shelf, items, total, isOwner }: ShelfDet
 						</p>
 					</div>
 
-					{isOwner ? <ShelfSettingsMenu username={username} shelf={shelf} /> : null}
+					{isOwner ? (
+						<div className="flex flex-wrap items-center gap-2">
+							<AddBooksToShelfDialog
+								shelfId={shelf.id}
+								shelfName={shelf.name}
+								username={username}
+								shelfSlug={shelf.slug}
+								initialWorkIds={items.map((item) => item.workId)}
+							/>
+							<ShelfSettingsMenu username={username} shelf={shelf} />
+						</div>
+					) : null}
 				</header>
 			</div>
 
