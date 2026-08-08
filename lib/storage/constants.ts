@@ -32,3 +32,9 @@ export function isImageMimeType(value: string): value is ImageMimeType {
 
 export const imageUploadPurposeSchema = ["user_avatar", "club_avatar", "club_cover"] as const;
 export type ImageUploadPurpose = (typeof imageUploadPurposeSchema)[number];
+
+export const ISO_639_1_LANGUAGE_PATTERN = /^[a-z]{2}$/;
+
+export function isIso6391Language(value: string): boolean {
+	return ISO_639_1_LANGUAGE_PATTERN.test(value);
+}

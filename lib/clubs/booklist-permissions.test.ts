@@ -5,6 +5,7 @@ import {
 	canModerateBooklistProposals,
 	canProposeToBooklist,
 	canRemoveFromBooklist,
+	canUploadBooklistPdf,
 } from "@/lib/clubs/booklist-permissions";
 import { DEFAULT_CLUB_BOOKLIST_SETTINGS } from "@/lib/clubs/constants";
 
@@ -57,5 +58,16 @@ describe("club booklist permissions", () => {
 	it("requires active membership", () => {
 		expect(canAddToBooklist({ role: "admin", status: "invited" }, settings)).toBe(false);
 		expect(canAddToBooklist(null, settings)).toBe(false);
+	});
+
+	it("defaults: admin and mods can upload PDFs; members cannot", () => {
+		expect(canUploadBooklistPdf(admin, settings)).toBe(true);
+		expect(canUploadBooklistPdf(mod, settings)).toBe(true);
+		expect(canUploadBooklistPdf(member, settings)).toBe(false);
+	});
+
+	it("lets members upload PDFs when toggle is on", () => {
+		const open = { ...settings, membersCanUploadPdf: true };
+		expect(canUploadBooklistPdf(member, open)).toBe(true);
 	});
 });

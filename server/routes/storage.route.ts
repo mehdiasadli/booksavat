@@ -2,10 +2,12 @@ import { and, eq } from "drizzle-orm";
 
 import type { Database } from "@/db";
 import { club, clubMembership } from "@/db/schema";
+import { resolveBooklistPdfUploadContext } from "@/lib/clubs/booklist-pdfs.server";
 import { canManageSettings } from "@/lib/clubs/visibility";
 import { isImageMimeType, MAX_DEV_PING_BYTES } from "@/lib/storage/constants";
 import { createPublicImageUploadUrl } from "@/lib/storage/images.server";
 import { buildDevUploadKey, isDevUploadKeyForUser } from "@/lib/storage/keys";
+import { createPrivatePdfUploadUrl } from "@/lib/storage/pdfs.server";
 import {
 	headObject,
 	isR2DevPingEnabled,
@@ -149,8 +151,45 @@ export const createPublicImageUploadUrlRoute =
 		},
 	);
 
+export const createPrivatePdfUploadUrlRoute =
+	protectedProcedure.storage.createPrivatePdfUploadUrl.handler(
+		async ({ input, context, errors }) => {
+			const ctx = await resolveBooklistPdfUploadContext(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.workId,
+			);
+			if (!ctx.ok) {
+				if (ctx.code === "not_found") {
+					throw errors.NOT_FOUND({ message: ctx.message });
+				}
+				if (ctx.code === "forbidden") {
+					throw errors.FORBIDDEN({ message: ctx.message });
+				}
+				if (ctx.code === "conflict") {
+					throw errors.CONFLICT({ message: ctx.message });
+				}
+				throw errors.BAD_REQUEST({ message: ctx.message });
+			}
+
+			try {
+				return await createPrivatePdfUploadUrl({
+					clubId: ctx.data.clubId,
+					workId: ctx.data.workId,
+					contentLength: input.contentLength,
+				});
+			} catch (error) {
+				throw errors.BAD_REQUEST({
+					message: error instanceof Error ? error.message : "Could not create upload URL",
+				});
+			}
+		},
+	);
+
 export const storageRouter = {
 	createDevUploadUrl,
 	verifyDevObject,
 	createPublicImageUploadUrl: createPublicImageUploadUrlRoute,
+	createPrivatePdfUploadUrl: createPrivatePdfUploadUrlRoute,
 };

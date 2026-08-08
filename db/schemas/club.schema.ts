@@ -76,6 +76,9 @@ export const club = pgTable(
 		modsCanPropose: boolean("mods_can_propose").default(true).notNull(),
 		membersCanPropose: boolean("members_can_propose").default(true).notNull(),
 
+		modsCanUploadPdf: boolean("mods_can_upload_pdf").default(true).notNull(),
+		membersCanUploadPdf: boolean("members_can_upload_pdf").default(false).notNull(),
+
 		shortlistMode: clubShortlistModeEnum("shortlist_mode").default("manual").notNull(),
 		defaultShortlistSize: integer("default_shortlist_size").default(10).notNull(),
 		voteChipsByRole: jsonb("vote_chips_by_role")
@@ -141,5 +144,33 @@ export const clubBooklistItem = pgTable(
 		index("club_booklist_item_club_status_idx").on(table.clubId, table.status),
 		index("club_booklist_item_work_id_idx").on(table.workId),
 		index("club_booklist_item_added_by_idx").on(table.addedByUserId),
+	],
+);
+
+export const clubBooklistDocument = pgTable(
+	"club_booklist_document",
+	{
+		id,
+		createdAt,
+		updatedAt,
+
+		booklistItemId: uuid("booklist_item_id")
+			.notNull()
+			.references(() => clubBooklistItem.id, { onDelete: "cascade" }),
+		/** Private R2 key under `private/clubs/...`. */
+		storageKey: text("storage_key").notNull(),
+		fileName: text("file_name").notNull(),
+		sizeBytes: integer("size_bytes").notNull(),
+		pageCount: integer("page_count").notNull(),
+		/** ISO 639-1 language code, e.g. `en`. */
+		language: text("language").notNull(),
+		uploadedByUserId: uuid("uploaded_by_user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+	},
+	(table) => [
+		uniqueIndex("club_booklist_document_storage_key_uidx").on(table.storageKey),
+		index("club_booklist_document_item_idx").on(table.booklistItemId),
+		index("club_booklist_document_uploaded_by_idx").on(table.uploadedByUserId),
 	],
 );

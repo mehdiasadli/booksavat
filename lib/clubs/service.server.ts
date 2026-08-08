@@ -70,6 +70,7 @@ export type ClubDetail = ClubSummary & {
 	canProposeToBooklist: boolean;
 	canRemoveFromBooklist: boolean;
 	canModerateBooklistProposals: boolean;
+	canUploadBooklistPdf: boolean;
 	canCreateSession: boolean;
 	canManageSessions: boolean;
 	activeSession: ClubActiveSession | null;

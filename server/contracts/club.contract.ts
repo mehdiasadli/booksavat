@@ -1,5 +1,6 @@
 import * as z from "zod";
 
+import { ISO_639_1_LANGUAGE_PATTERN } from "@/lib/storage/constants";
 import { base, paginated, paginationInputSchema } from "@/server/contracts/base.contract";
 import { readingLogStatusSchema } from "@/server/contracts/reading-log.contract";
 
@@ -24,6 +25,8 @@ export const clubBooklistSettingsSchema = z.object({
 	membersCanRemove: z.boolean(),
 	modsCanPropose: z.boolean(),
 	membersCanPropose: z.boolean(),
+	modsCanUploadPdf: z.boolean(),
+	membersCanUploadPdf: z.boolean(),
 	shortlistMode: clubShortlistModeSchema,
 	defaultShortlistSize: z.number().int().min(2).max(30),
 	voteChipsByRole: voteChipsByRoleSchema,
@@ -86,6 +89,7 @@ export const clubDetailSchema = clubSummarySchema.extend({
 	canProposeToBooklist: z.boolean(),
 	canRemoveFromBooklist: z.boolean(),
 	canModerateBooklistProposals: z.boolean(),
+	canUploadBooklistPdf: z.boolean(),
 	canCreateSession: z.boolean(),
 	canManageSessions: z.boolean(),
 	activeSession: clubActiveSessionSchema.nullable(),
@@ -195,6 +199,20 @@ export const readingSessionDetailSchema = readingSessionSummarySchema.extend({
 	reading: sessionReadingStateSchema.nullable(),
 });
 
+export const clubBooklistDocumentSchema = z.object({
+	id: z.uuid(),
+	fileName: z.string(),
+	sizeBytes: z.number().int().positive(),
+	pageCount: z.number().int().min(1).max(10_000),
+	language: z.string().regex(ISO_639_1_LANGUAGE_PATTERN),
+	createdAt: z.date(),
+	uploadedBy: z.object({
+		id: z.uuid(),
+		username: z.string(),
+		name: z.string(),
+	}),
+});
+
 export const clubBooklistItemSchema = z.object({
 	id: z.uuid(),
 	workId: z.string(),
@@ -211,6 +229,7 @@ export const clubBooklistItemSchema = z.object({
 	}),
 	viewerReadingStatus: z.enum(["reading", "completed", "dnf"]).nullable(),
 	viewerHasFeedback: z.boolean(),
+	documents: z.array(clubBooklistDocumentSchema),
 });
 
 export const clubMemberCardSchema = z.object({
@@ -555,6 +574,8 @@ export const updateBooklistSettingsContract = base
 			membersCanRemove: z.boolean().optional(),
 			modsCanPropose: z.boolean().optional(),
 			membersCanPropose: z.boolean().optional(),
+			modsCanUploadPdf: z.boolean().optional(),
+			membersCanUploadPdf: z.boolean().optional(),
 			shortlistMode: clubShortlistModeSchema.optional(),
 			defaultShortlistSize: z.number().int().min(2).max(30).optional(),
 			voteChipsByRole: voteChipsByRoleSchema.optional(),
@@ -647,6 +668,59 @@ const sessionIdInput = z.object({
 	slug: z.string().trim().min(1).max(64),
 	sessionId: z.uuid(),
 });
+
+export const registerBooklistPdfContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/booklist/{workId}/pdfs",
+		tags: ["club"],
+		summary: "Register a private PDF uploaded to R2 for a booklist item",
+	})
+	.input(
+		workIdInput.extend({
+			key: z.string().trim().min(1).max(512),
+			fileName: z.string().trim().min(1).max(200),
+			pageCount: z.number().int().min(1).max(10_000),
+			language: z.string().trim().regex(ISO_639_1_LANGUAGE_PATTERN),
+		}),
+	)
+	.output(clubBooklistDocumentSchema);
+
+export const createBooklistPdfDownloadUrlContract = base
+	.route({
+		method: "POST",
+		path: "/club/{slug}/booklist/pdfs/{documentId}/download-url",
+		tags: ["club"],
+		summary: "Create a short-lived signed download URL for a booklist PDF",
+	})
+	.input(
+		z.object({
+			slug: z.string().trim().min(1).max(64),
+			documentId: z.uuid(),
+		}),
+	)
+	.output(
+		z.object({
+			downloadUrl: z.string().url(),
+			expiresInSeconds: z.number().int().positive(),
+			fileName: z.string(),
+		}),
+	);
+
+export const removeBooklistPdfContract = base
+	.route({
+		method: "DELETE",
+		path: "/club/{slug}/booklist/pdfs/{documentId}",
+		tags: ["club"],
+		summary: "Delete a booklist PDF",
+	})
+	.input(
+		z.object({
+			slug: z.string().trim().min(1).max(64),
+			documentId: z.uuid(),
+		}),
+	)
+	.output(z.object({ ok: z.literal(true) }));
 
 export const createReadingSessionContract = base
 	.route({
@@ -1250,6 +1324,9 @@ export const clubContract = {
 	approveBooklistProposal: approveBooklistProposalContract,
 	rejectBooklistProposal: rejectBooklistProposalContract,
 	removeBooklistItem: removeBooklistItemContract,
+	registerBooklistPdf: registerBooklistPdfContract,
+	createBooklistPdfDownloadUrl: createBooklistPdfDownloadUrlContract,
+	removeBooklistPdf: removeBooklistPdfContract,
 	createReadingSession: createReadingSessionContract,
 	listReadingSessions: listReadingSessionsContract,
 	getReadingSession: getReadingSessionContract,

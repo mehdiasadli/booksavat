@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	buildBooklistPdfKey,
 	buildClubAvatarKey,
 	buildClubCoverKey,
 	buildDevUploadKey,
 	buildPrivateKey,
 	buildPublicKey,
 	buildUserAvatarKey,
+	isBooklistPdfKeyForItem,
 	isClubAvatarKeyForClub,
 	isClubCoverKeyForClub,
 	isDevUploadKeyForUser,
@@ -41,5 +43,13 @@ describe("storage keys", () => {
 		const clubCover = buildClubCoverKey("club-1", "image/png", "img-3");
 		expect(clubCover).toBe("public/clubs/club-1/cover/img-3.png");
 		expect(isClubCoverKeyForClub(clubCover, "club-1")).toBe(true);
+	});
+
+	it("scopes booklist PDF keys per club and work", () => {
+		const key = buildBooklistPdfKey("club-1", "OL123W", "doc-1");
+		expect(key).toBe("private/clubs/club-1/booklist/OL123W/doc-1.pdf");
+		expect(isBooklistPdfKeyForItem(key, "club-1", "OL123W")).toBe(true);
+		expect(isBooklistPdfKeyForItem(key, "club-2", "OL123W")).toBe(false);
+		expect(isBooklistPdfKeyForItem(key, "club-1", "OL456W")).toBe(false);
 	});
 });

@@ -9,6 +9,11 @@ import {
 	updateBooklistSettings,
 } from "@/lib/clubs/booklist.server";
 import {
+	createBooklistPdfDownloadUrl,
+	registerBooklistPdf,
+	removeBooklistPdf,
+} from "@/lib/clubs/booklist-pdfs.server";
+import {
 	createCommunityComment,
 	createCommunityPost,
 	deleteCommunityComment,
@@ -410,6 +415,48 @@ export const removeBooklistItemRoute = protectedProcedure.club.removeBooklistIte
 			context.viewer.user.id,
 			input.slug,
 			input.workId,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const registerBooklistPdfRoute = protectedProcedure.club.registerBooklistPdf.handler(
+	async ({ input, context, errors }) => {
+		const { slug, workId, ...body } = input;
+		const result = await registerBooklistPdf(
+			context.db,
+			context.viewer.user.id,
+			slug,
+			workId,
+			body,
+		);
+		if (!result.ok) throw mapServiceError(errors, result);
+		return result.data;
+	},
+);
+
+export const createBooklistPdfDownloadUrlRoute =
+	protectedProcedure.club.createBooklistPdfDownloadUrl.handler(
+		async ({ input, context, errors }) => {
+			const result = await createBooklistPdfDownloadUrl(
+				context.db,
+				context.viewer.user.id,
+				input.slug,
+				input.documentId,
+			);
+			if (!result.ok) throw mapServiceError(errors, result);
+			return result.data;
+		},
+	);
+
+export const removeBooklistPdfRoute = protectedProcedure.club.removeBooklistPdf.handler(
+	async ({ input, context, errors }) => {
+		const result = await removeBooklistPdf(
+			context.db,
+			context.viewer.user.id,
+			input.slug,
+			input.documentId,
 		);
 		if (!result.ok) throw mapServiceError(errors, result);
 		return result.data;
@@ -854,6 +901,9 @@ export const clubRouter = {
 	approveBooklistProposal: approveBooklistProposalRoute,
 	rejectBooklistProposal: rejectBooklistProposalRoute,
 	removeBooklistItem: removeBooklistItemRoute,
+	registerBooklistPdf: registerBooklistPdfRoute,
+	createBooklistPdfDownloadUrl: createBooklistPdfDownloadUrlRoute,
+	removeBooklistPdf: removeBooklistPdfRoute,
 	createReadingSession: createReadingSessionRoute,
 	listReadingSessions: listReadingSessionsRoute,
 	getReadingSession: getReadingSessionRoute,

@@ -342,6 +342,28 @@ export function ClubSettings({ initial }: ClubSettingsProps) {
 						/>
 					</div>
 
+					<div className="grid gap-2">
+						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							Can upload PDFs
+						</p>
+						<PermissionRow
+							id="mods-can-upload-pdf"
+							label="Moderators"
+							checked={booklist.modsCanUploadPdf}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, modsCanUploadPdf: checked }))
+							}
+						/>
+						<PermissionRow
+							id="members-can-upload-pdf"
+							label="Members"
+							checked={booklist.membersCanUploadPdf}
+							onCheckedChange={(checked) =>
+								setBooklist((prev) => ({ ...prev, membersCanUploadPdf: checked }))
+							}
+						/>
+					</div>
+
 					<div className="grid gap-2 sm:grid-cols-2">
 						<div className="grid gap-2">
 							<Label htmlFor="shortlist-mode">Session shortlist</Label>

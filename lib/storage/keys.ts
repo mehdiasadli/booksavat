@@ -69,3 +69,12 @@ export function isClubCoverKeyForClub(key: string, clubId: string): boolean {
 	const prefix = `${PUBLIC_KEY_PREFIX}clubs/${sanitizeSegment(clubId)}/cover/`;
 	return key.startsWith(prefix);
 }
+
+export function buildBooklistPdfKey(clubId: string, workId: string, id: string): string {
+	return buildPrivateKey(["clubs", clubId, "booklist", workId, id], "pdf");
+}
+
+export function isBooklistPdfKeyForItem(key: string, clubId: string, workId: string): boolean {
+	const prefix = `${PRIVATE_KEY_PREFIX}clubs/${sanitizeSegment(clubId)}/booklist/${sanitizeSegment(workId)}/`;
+	return key.startsWith(prefix);
+}
