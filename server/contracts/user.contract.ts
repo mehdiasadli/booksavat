@@ -68,9 +68,24 @@ export const getByUsernameContract = base
 	.input(z.object({ username: z.string() }))
 	.output(userSchema);
 
+export const updateAvatarContract = base
+	.route({
+		method: "PUT",
+		path: "/user/avatar",
+		tags: ["user"],
+		summary: "Set the signed-in user's avatar from a verified R2 upload",
+	})
+	.input(
+		z.object({
+			key: z.string().trim().min(1).max(512),
+		}),
+	)
+	.output(userSchema);
+
 export const userContract = {
 	me: meContract,
 	list: listUsersContract,
 	updateRole: updateUserRoleContract,
 	getByUsername: getByUsernameContract,
+	updateAvatar: updateAvatarContract,
 };

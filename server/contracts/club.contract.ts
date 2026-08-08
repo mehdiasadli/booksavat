@@ -34,6 +34,8 @@ export const clubSummarySchema = z.object({
 	name: z.string(),
 	slug: z.string(),
 	description: z.string().nullable(),
+	avatarUrl: z.string().url().nullable(),
+	coverUrl: z.string().url().nullable(),
 	visibility: clubVisibilitySchema,
 	memberCount: z.number().int().min(0),
 	createdAt: z.date(),
@@ -265,6 +267,22 @@ export const updateClubContract = base
 			nextSlug: z.string().trim().min(1).max(48).optional(),
 			description: z.string().trim().max(2000).nullable().optional(),
 			visibility: clubVisibilitySchema.optional(),
+		}),
+	)
+	.output(clubDetailSchema);
+
+export const updateClubImagesContract = base
+	.route({
+		method: "PUT",
+		path: "/club/{slug}/images",
+		tags: ["club"],
+		summary: "Update club avatar and/or cover from verified R2 uploads",
+	})
+	.input(
+		z.object({
+			slug: z.string().trim().min(1).max(64),
+			avatarKey: z.string().trim().min(1).max(512).optional(),
+			coverKey: z.string().trim().min(1).max(512).optional(),
 		}),
 	)
 	.output(clubDetailSchema);
@@ -1200,6 +1218,7 @@ export const toggleCommunityCommentReactionContract = base
 export const clubContract = {
 	create: createClubContract,
 	update: updateClubContract,
+	updateImages: updateClubImagesContract,
 	delete: deleteClubContract,
 	getBySlug: getBySlugContract,
 	listMine: listMineContract,

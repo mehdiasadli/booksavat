@@ -29,6 +29,7 @@ import {
 	type ViewerMembership,
 } from "@/lib/clubs/visibility";
 import { generateUniqueSlug, isValidSlug, slugify } from "@/lib/slugify";
+import { deleteManagedPublicObject, verifyUploadedImage } from "@/lib/storage/images.server";
 
 export type ClubRow = typeof club.$inferSelect;
 export type MembershipRow = typeof clubMembership.$inferSelect;
@@ -43,6 +44,8 @@ export type ClubSummary = {
 	name: string;
 	slug: string;
 	description: string | null;
+	avatarUrl: string | null;
+	coverUrl: string | null;
 	visibility: ClubVisibility;
 	memberCount: number;
 	createdAt: Date;
@@ -149,6 +152,8 @@ async function toSummary(db: Database, row: ClubRow): Promise<ClubSummary> {
 		name: row.name,
 		slug: row.slug,
 		description: row.description,
+		avatarUrl: row.avatarUrl,
+		coverUrl: row.coverUrl,
 		visibility: row.visibility,
 		memberCount: await activeMemberCount(db, row.id),
 		createdAt: row.createdAt,
@@ -1089,4 +1094,66 @@ export async function getClubByInviteCode(
 
 export async function requireClubByIdForSeed(db: Database, clubId: string) {
 	return requireClubById(db, clubId);
+}
+
+export async function updateClubImages(
+	db: Database,
+	viewerUserId: string,
+	slug: string,
+	patch: { avatarKey?: string; coverKey?: string },
+): Promise<ServiceResult<ClubDetail>> {
+	const row = await requireClubBySlug(db, slug);
+	if (!row) return fail("not_found", "Club not found");
+
+	const membership = toViewerMembership(await getMembership(db, row.id, viewerUserId));
+	if (!canManageSettings(membership)) {
+		return fail("forbidden", "Only the club admin can edit images");
+	}
+
+	if (!patch.avatarKey && !patch.coverKey) {
+		return fail("bad_request", "Provide avatarKey and/or coverKey");
+	}
+
+	const next: Partial<ClubRow> = { updatedAt: new Date() };
+
+	if (patch.avatarKey) {
+		try {
+			const verified = await verifyUploadedImage({
+				key: patch.avatarKey,
+				purpose: "club_avatar",
+				userId: viewerUserId,
+				clubId: row.id,
+			});
+			next.avatarUrl = verified.publicUrl;
+		} catch (error) {
+			return fail("bad_request", error instanceof Error ? error.message : "Invalid avatar upload");
+		}
+	}
+
+	if (patch.coverKey) {
+		try {
+			const verified = await verifyUploadedImage({
+				key: patch.coverKey,
+				purpose: "club_cover",
+				userId: viewerUserId,
+				clubId: row.id,
+			});
+			next.coverUrl = verified.publicUrl;
+		} catch (error) {
+			return fail("bad_request", error instanceof Error ? error.message : "Invalid cover upload");
+		}
+	}
+
+	const previousAvatarUrl = patch.avatarKey ? row.avatarUrl : null;
+	const previousCoverUrl = patch.coverKey ? row.coverUrl : null;
+
+	const [updated] = await db.update(club).set(next).where(eq(club.id, row.id)).returning();
+	if (!updated) return fail("not_found", "Club not found");
+
+	await Promise.all([
+		deleteManagedPublicObject(previousAvatarUrl),
+		deleteManagedPublicObject(previousCoverUrl),
+	]);
+
+	return ok(await toDetail(db, updated, viewerUserId));
 }

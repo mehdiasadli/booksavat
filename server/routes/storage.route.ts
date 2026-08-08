@@ -1,6 +1,12 @@
 import { randomUUID } from "node:crypto";
 
+import { and, eq } from "drizzle-orm";
+
+import type { Database } from "@/db";
+import { club, clubMembership } from "@/db/schema";
+import { canManageSettings } from "@/lib/clubs/visibility";
 import { isImageMimeType, MAX_DEV_PING_BYTES } from "@/lib/storage/constants";
+import { createPublicImageUploadUrl } from "@/lib/storage/images.server";
 import { buildDevUploadKey, isDevUploadKeyForUser } from "@/lib/storage/keys";
 import {
 	headObject,
@@ -20,6 +26,37 @@ function requireDevPingEnabled(errors: {
 			message: "R2 storage dev ping is disabled. Set R2_DEV_PING_ENABLED=true to use it.",
 		});
 	}
+}
+
+async function resolveClubIdForImageUpload(
+	db: Database,
+	slug: string,
+	viewerUserId: string,
+	errors: {
+		NOT_FOUND: (payload: { message: string }) => Error;
+		FORBIDDEN: (payload: { message: string }) => Error;
+	},
+): Promise<string> {
+	const [row] = await db.select({ id: club.id }).from(club).where(eq(club.slug, slug)).limit(1);
+	if (!row) {
+		throw errors.NOT_FOUND({ message: "Club not found" });
+	}
+
+	const [membership] = await db
+		.select({ role: clubMembership.role, status: clubMembership.status })
+		.from(clubMembership)
+		.where(and(eq(clubMembership.clubId, row.id), eq(clubMembership.userId, viewerUserId)))
+		.limit(1);
+
+	if (
+		!canManageSettings(
+			membership?.status === "active" ? { role: membership.role, status: membership.status } : null,
+		)
+	) {
+		throw errors.FORBIDDEN({ message: "Only the club admin can upload club images" });
+	}
+
+	return row.id;
 }
 
 export const createDevUploadUrl = protectedProcedure.storage.createDevUploadUrl.handler(
@@ -78,7 +115,44 @@ export const verifyDevObject = protectedProcedure.storage.verifyDevObject.handle
 	},
 );
 
+export const createPublicImageUploadUrlRoute =
+	protectedProcedure.storage.createPublicImageUploadUrl.handler(
+		async ({ input, context, errors }) => {
+			if (!isImageMimeType(input.contentType)) {
+				throw errors.BAD_REQUEST({ message: "Unsupported image type" });
+			}
+
+			let clubId: string | undefined;
+			if (input.purpose === "club_avatar" || input.purpose === "club_cover") {
+				if (!input.slug) {
+					throw errors.BAD_REQUEST({ message: "Club slug is required" });
+				}
+				clubId = await resolveClubIdForImageUpload(
+					context.db,
+					input.slug,
+					context.viewer.user.id,
+					errors,
+				);
+			}
+
+			try {
+				return await createPublicImageUploadUrl({
+					purpose: input.purpose,
+					userId: context.viewer.user.id,
+					clubId,
+					contentType: input.contentType,
+					contentLength: input.contentLength,
+				});
+			} catch (error) {
+				throw errors.BAD_REQUEST({
+					message: error instanceof Error ? error.message : "Could not create upload URL",
+				});
+			}
+		},
+	);
+
 export const storageRouter = {
 	createDevUploadUrl,
 	verifyDevObject,
+	createPublicImageUploadUrl: createPublicImageUploadUrlRoute,
 };

@@ -29,3 +29,6 @@ export const DEV_UPLOAD_KEY_PREFIX = "public/dev/";
 export function isImageMimeType(value: string): value is ImageMimeType {
 	return (IMAGE_MIME_TYPES as readonly string[]).includes(value);
 }
+
+export const imageUploadPurposeSchema = ["user_avatar", "club_avatar", "club_cover"] as const;
+export type ImageUploadPurpose = (typeof imageUploadPurposeSchema)[number];

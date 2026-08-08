@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+	DeleteObjectCommand,
 	GetObjectCommand,
 	HeadObjectCommand,
 	PutObjectCommand,
@@ -76,6 +77,10 @@ export function isR2DevPingEnabled(): boolean {
 	return process.env.R2_DEV_PING_ENABLED === "true";
 }
 
+export function getPublicBaseUrl(): string {
+	return readConfig().publicBaseUrl;
+}
+
 export function publicUrlForKey(key: string): string {
 	if (!isPublicKey(key)) {
 		throw new Error("Only public/ keys have a stable public URL");
@@ -130,6 +135,18 @@ export async function presignGetObject(options: {
 
 	const downloadUrl = await getSignedUrl(client, command, { expiresIn });
 	return { downloadUrl, key: options.key };
+}
+
+export async function deleteObject(key: string): Promise<void> {
+	const config = readConfig();
+	const client = getClient();
+
+	await client.send(
+		new DeleteObjectCommand({
+			Bucket: config.bucket,
+			Key: key,
+		}),
+	);
 }
 
 export async function headObject(key: string): Promise<{

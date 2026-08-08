@@ -62,6 +62,8 @@ export const club = pgTable(
 		name: text("name").notNull(),
 		slug: text("slug").notNull().unique(),
 		description: text("description"),
+		avatarUrl: text("avatar_url"),
+		coverUrl: text("cover_url"),
 		visibility: clubVisibilityEnum("visibility").default("public").notNull(),
 		/** Opaque code for shareable join links (`/join/[inviteCode]`). */
 		inviteCode: text("invite_code").notNull().unique(),

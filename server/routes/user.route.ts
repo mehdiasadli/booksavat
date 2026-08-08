@@ -1,6 +1,7 @@
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 
 import { user as userTable } from "@/db/schema";
+import { updateUserAvatar } from "@/lib/users/avatar.server";
 import type { ViewerUser } from "@/server/context";
 import { type User, userRoleSchema } from "@/server/contracts";
 import { adminProcedure, protectedProcedure, publicProcedure } from "@/server/procedures";
@@ -111,9 +112,24 @@ export const updateRole = adminProcedure.user.updateRole.handler(
 	},
 );
 
+export const updateAvatar = protectedProcedure.user.updateAvatar.handler(
+	async ({ input, context, errors }) => {
+		const result = await updateUserAvatar(context.db, context.viewer.user.id, input.key);
+		if (!result.ok) {
+			throw errors.BAD_REQUEST({ message: result.message });
+		}
+
+		return {
+			...result.data,
+			role: userRoleSchema.catch("user").parse(result.data.role),
+		};
+	},
+);
+
 export const userRouter = {
 	me,
 	list,
 	updateRole,
 	getByUsername,
+	updateAvatar,
 };
