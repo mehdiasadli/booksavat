@@ -28,9 +28,11 @@ should work (Production, Preview, and Development if you use `vercel dev`):
 | `BETTER_AUTH_URL` | The deployment's own origin, e.g. `https://booksavat.com` |
 | `GOOGLE_CLIENT_ID` | |
 | `GOOGLE_CLIENT_SECRET` | |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` / `R2_ENDPOINT` / `R2_PUBLIC_BASE_URL` | Cloudflare R2 — see [STORAGE.md](STORAGE.md) |
+| `R2_DEV_PING_ENABLED` | Optional; `true` only while exercising storage smoke tests |
 
-Each of these is asserted at import time, so a missing one fails the build rather than
-producing a half-working deployment.
+Auth/Google vars are asserted at import time. R2 credentials are asserted lazily when the
+storage client is first used.
 
 `BETTER_AUTH_URL` is the awkward one for previews, since every preview gets its own
 generated hostname. Either point previews at a stable alias, or accept that Google sign-in

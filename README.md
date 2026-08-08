@@ -23,6 +23,7 @@ Full instructions, including database and Google OAuth setup, are in [docs/SETUP
 | [docs/SETUP.md](docs/SETUP.md) | Prerequisites, environment variables, first run |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the layers fit together: oRPC, database, auth |
 | [docs/DATABASE.md](docs/DATABASE.md) | Schema changes, migrations, the no-push rule |
+| [docs/STORAGE.md](docs/STORAGE.md) | Cloudflare R2 setup, env vars, key layout |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Vercel setup, environment variables, releases |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Branch and PR flow, commit format, scripts, hooks |
 | [SECURITY.md](SECURITY.md) | Reporting a vulnerability |

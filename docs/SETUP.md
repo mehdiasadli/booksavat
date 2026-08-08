@@ -31,6 +31,7 @@ than at some later request.
 | `BETTER_AUTH_SECRET` | Generate one: `openssl rand -base64 32` |
 | `BETTER_AUTH_URL` | The app's own origin — `http://localhost:3456` in development |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Cloud Console credentials |
+| `R2_*` | Cloudflare R2 — see [STORAGE.md](STORAGE.md) (needed when using uploads) |
 
 ### A local database with Docker
 
