@@ -7,6 +7,7 @@ import Link from "next/link";
 import { FollowButton } from "@/components/follows/follow-button";
 import { PrivateLocked } from "@/components/follows/private-locked";
 import { Button } from "@/components/ui/button";
+import { AvatarUpload } from "@/components/users/avatar-upload";
 import { UserAvatar } from "@/components/users/user-avatar";
 import { UserRoleBadge } from "@/components/users/user-role-badge";
 import { formatMonthYear, formatRelativeTime } from "@/lib/dates";
@@ -31,7 +32,14 @@ export function UserProfileView({ profile: initial, className }: UserProfileProp
 	return (
 		<article className={cn("mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 py-12", className)}>
 			<header className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:text-left">
-				<UserAvatar name={profile.name} image={profile.image} priority />
+				<div className="grid gap-3">
+					<UserAvatar name={profile.name} image={profile.image} priority />
+					{isOwner ? (
+						<div className="flex justify-center sm:justify-start">
+							<AvatarUpload />
+						</div>
+					) : null}
+				</div>
 
 				<div className="flex min-w-0 flex-1 flex-col gap-3">
 					<div className="flex flex-col items-center gap-2 sm:items-start">

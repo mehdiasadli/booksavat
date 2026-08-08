@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Lock, Users } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import { ClubShareSheet } from "@/components/clubs/club-share-sheet";
 import { ClubSubnav } from "@/components/clubs/club-subnav";
 import { InviteMemberDialog } from "@/components/clubs/invite-member-dialog";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/users/user-avatar";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/lib/orpc";
 import type { ClubDetail } from "@/server/contracts";
@@ -104,6 +106,19 @@ export function ClubProfile({ initial }: ClubProfileProps) {
 		<article className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-10 sm:px-6">
 			{(showMembers || showSettings || club.canViewContent) && <ClubSubnav club={club} />}
 
+			{club.coverUrl ? (
+				<div className="relative -mx-4 aspect-[16/9] overflow-hidden border-y border-border sm:-mx-6">
+					<Image
+						src={club.coverUrl}
+						alt={`${club.name} cover`}
+						fill
+						className="object-cover"
+						priority
+						sizes="(max-width: 768px) 100vw, 768px"
+					/>
+				</div>
+			) : null}
+
 			<header className="grid gap-4">
 				<div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
 					<span>{visibilityLabel[club.visibility]}</span>
@@ -114,11 +129,24 @@ export function ClubProfile({ initial }: ClubProfileProps) {
 						{club.memberCount} {club.memberCount === 1 ? "member" : "members"}
 					</span>
 				</div>
-				<div>
-					<p className="font-mono text-sm text-muted-foreground">@{club.slug}</p>
-					<h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-						{club.name}
-					</h1>
+				<div className="flex items-start gap-4">
+					{club.avatarUrl ? (
+						<Image
+							src={club.avatarUrl}
+							alt={`${club.name} avatar`}
+							width={96}
+							height={96}
+							className="size-24 shrink-0 object-cover ring-1 ring-foreground/10"
+						/>
+					) : (
+						<UserAvatar name={club.name} image={null} size="lg" />
+					)}
+					<div>
+						<p className="font-mono text-sm text-muted-foreground">@{club.slug}</p>
+						<h1 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+							{club.name}
+						</h1>
+					</div>
 				</div>
 				{club.description ? (
 					<p className="max-w-2xl text-muted-foreground text-pretty">{club.description}</p>
