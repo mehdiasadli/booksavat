@@ -1,5 +1,3 @@
-import { randomUUID } from "node:crypto";
-
 import { and, eq } from "drizzle-orm";
 
 import type { Database } from "@/db";
@@ -71,7 +69,7 @@ export const createDevUploadUrl = protectedProcedure.storage.createDevUploadUrl.
 			throw errors.BAD_REQUEST({ message: "File exceeds the 2 MB dev upload limit" });
 		}
 
-		const key = buildDevUploadKey(context.viewer.user.id, input.contentType, randomUUID());
+		const key = buildDevUploadKey(context.viewer.user.id, input.contentType, crypto.randomUUID());
 		const result = await presignPutObject({
 			key,
 			contentType: input.contentType,

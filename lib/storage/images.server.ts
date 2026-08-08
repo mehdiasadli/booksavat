@@ -1,7 +1,5 @@
 import "server-only";
 
-import { randomUUID } from "node:crypto";
-
 import {
 	IMAGE_MIME_TYPES,
 	type ImageMimeType,
@@ -44,7 +42,7 @@ export function buildImageUploadKey(
 	options: { userId: string; clubId?: string },
 	contentType: ImageMimeType,
 ): string {
-	const id = randomUUID();
+	const id = crypto.randomUUID();
 
 	switch (purpose) {
 		case "user_avatar":
